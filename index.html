@@ -131,7 +131,7 @@
 
   <div id="controls">
     <b>Move</b> <kbd>WASD</kbd>/<kbd>↑↓←→</kbd> · <b>Seed</b> <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> · <b>Till/Chop</b> <kbd>F</kbd> · <b>Plant</b> <kbd>G</kbd> · <b>Water</b> <kbd>R</kbd> · <b>Harvest→bin</b> <kbd>E</kbd> · <b>Hoe</b> <kbd>H</kbd> · <b>Fish / Sleep / Talk</b> <kbd>Space</kbd> · <b>Close</b> <kbd>Esc</kbd><br>
-    💧 Water once & it grows on its own · 🛏️ sleep to ship the bin & start a new day · 🎣 stand by water & tap Space on the "!" · 🌳 chop trees for wood · ⬆️ walk off the top into town to trade.
+    💧 Water once & it grows on its own · 🏠 enter the farmhouse (top-left) to sleep & ship the bin · 🎣 stand by water & tap Space on the "!" · 🌳 chop trees for wood · ⬆️ walk off the top into town to trade.
   </div>
 
 <script>
@@ -144,10 +144,13 @@
   const ctx = canvas.getContext("2d");
   ctx.imageSmoothingEnabled = false;
 
-  const T = { GRASS: 0, SOIL: 1, WATER: 2, BED: 3, BIN: 4 };
+  const T = { GRASS: 0, SOIL: 1, WATER: 2, BED: 3, BIN: 4, WALL: 5, DOOR: 6 };
   const STAGES = 3;
   const DAY_MS = 600000;   // one in-game day lasts 10 minutes (600s)
   const GATE_COLS = [8, 9, 10, 11];   // top-edge town entrance
+  const HOUSE = { r0: 1, c0: 1, r1: 4, c1: 4, doorR: 4, doorC: 2 }; // 4x4 farmhouse, top-left
+  const HOUSE_BED = { x: 96, y: 116, w: 90, h: 62 };   // bed inside the house
+  const HOUSE_BIN = { x: 240, y: 150, w: 40, h: 40 };  // shipping bin inside the house
 
   const CROPS = {
     catnip:     { name: "Catnip",       key: "1", cost: 5,  growMs: 5000,  sell: 15,  plantColor: "#a3d977", flower: "#c98bff", emoji: "🌿" },
@@ -196,9 +199,10 @@
     [[11,15],[11,16],[11,17],[11,18],[12,15],[12,16],[12,17],[12,18],[12,19],
      [13,15],[13,16],[13,17],[13,18],[13,19],[14,16],[14,17],[14,18],[14,19]]
       .forEach(([r,c]) => { if (state.tiles[r] && state.tiles[r][c] !== undefined) clearCell(r,c,T.WATER); });
-    // Bed + shipping bin
-    clearCell(11, 2, T.BED);
-    clearCell(11, 3, T.BIN);
+    // Farmhouse (bed & bin live indoors now)
+    for (let r = HOUSE.r0; r <= HOUSE.r1; r++)
+      for (let c = HOUSE.c0; c <= HOUSE.c1; c++) clearCell(r, c, T.WALL);
+    clearCell(HOUSE.doorR, HOUSE.doorC, T.DOOR);
     // A few wild trees
     for (let i = 0; i < 7; i++) spawnTreeRandom();
   }
@@ -243,6 +247,7 @@
     if (state.mode === "shop") { dialogInput(k); return; }
     if (state.mode === "fishing") { fishingInput(k); return; }
     if (state.scene === "town") { if (k === " " || k === "enter") townInteract(); return; }
+    if (state.scene === "house") { if (k === " " || k === "enter") houseInteract(); return; }
     // farm play
     if (k === "f") tillOrChop();
     else if (k === "g") plantSeed();
@@ -355,8 +360,6 @@
 
   // ================= Interaction (farm) =================
   function farmInteract() {
-    const { r, c } = catCell();
-    if (inBounds(r, c) && state.tiles[r][c] === T.BED) return sleep();
     if (nearWater()) return startFishing();
     showMessage("Nothing to interact with here.");
   }
@@ -484,6 +487,29 @@
     else showMessage("Walk up to the trader's stall to talk.");
   }
 
+  // ----- Farmhouse interior -----
+  function enterHouse() {
+    state.scene = "house"; state.mode = "play";
+    cat.x = W / 2 - 16; cat.y = H - 60 - cat.h - 6; cat.dir = "up";
+    showMessage("🏠 Inside the farmhouse — sleep 🛏️ to ship the bin. Walk down to leave.");
+  }
+  function returnFromHouse() {
+    state.scene = "farm"; state.mode = "play";
+    cat.x = HOUSE.doorC * TILE; cat.y = (HOUSE.doorR + 1) * TILE + 2; cat.dir = "down";
+    showMessage("🌾 Back outside!");
+  }
+  function nearRect(rc) {
+    const cx = cat.x + 16, cy = cat.y + 24;
+    return cx > rc.x - 26 && cx < rc.x + rc.w + 26 && cy > rc.y - 26 && cy < rc.y + rc.h + 26;
+  }
+  const nearHouseBed = () => nearRect(HOUSE_BED);
+  const nearHouseBin = () => nearRect(HOUSE_BIN);
+  function houseInteract() {
+    if (nearHouseBed()) return sleep();
+    if (nearHouseBin()) { showMessage(`📦 Bin holds ${state.bin.length} item(s) — sleep to ship them.`); return; }
+    showMessage("Sleep at the bed, or head down to the door to leave.");
+  }
+
   // ----- Shop dialog -----
   const dialogEl = document.getElementById("dialog");
   let dialogOptions = [];
@@ -544,6 +570,13 @@
     if (state.scene === "farm") updateFarm(dt);
   }
 
+  function isBlocked(r, c) { return inBounds(r, c) && (state.treeHp[r][c] > 0 || state.tiles[r][c] === T.WALL); }
+  function aabb(ax, ay, aw, ah, bx, by, bw, bh) { return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by; }
+  function rectBlocked(px, py) {           // cat "feet" box vs house furniture
+    const fx = px + 8, fy = py + 16, fw = 16, fh = 14;
+    return aabb(fx, fy, fw, fh, HOUSE_BED.x, HOUSE_BED.y, HOUSE_BED.w, HOUSE_BED.h)
+        || aabb(fx, fy, fw, fh, HOUSE_BIN.x, HOUSE_BIN.y, HOUSE_BIN.w, HOUSE_BIN.h);
+  }
   function moveCat(mx, my) {
     if (state.scene === "town") {
       cat.x = Math.max(-4, Math.min(W - cat.w + 4, cat.x + mx));
@@ -551,13 +584,19 @@
       if (cat.y >= H - cat.h + 6) returnToFarm();   // bottom edge → farm
       return;
     }
-    // farm: tree collision + edges + town gate
+    if (state.scene === "house") {
+      const nx = Math.max(60, Math.min(W - 60 - cat.w, cat.x + mx));
+      const ny = Math.max(60, Math.min(H - 60 - cat.h, cat.y + my));
+      if (!rectBlocked(nx, cat.y)) cat.x = nx;
+      if (!rectBlocked(cat.x, ny)) cat.y = ny;
+      if (cat.y >= H - 60 - cat.h - 1 && Math.abs(cat.x + cat.w / 2 - W / 2) < 30) returnFromHouse();
+      return;
+    }
+    // farm: tree/wall collision + edges + town gate + house door
     let nx = Math.max(0, Math.min(W - cat.w, cat.x + mx));
     let ny = cat.y + my;
-    // horizontal
     let cc = Math.floor((nx + cat.w / 2) / TILE), cr = Math.floor((cat.y + cat.h / 2) / TILE);
-    if (!(inBounds(cr, cc) && state.treeHp[cr][cc] > 0)) cat.x = nx;
-    // vertical
+    if (!isBlocked(cr, cc)) cat.x = nx;
     cc = Math.floor((cat.x + cat.w / 2) / TILE); cr = Math.floor((ny + cat.h / 2) / TILE);
     if (ny < 0) {
       const gateCol = Math.floor((cat.x + cat.w / 2) / TILE);
@@ -566,7 +605,10 @@
     }
     ny = Math.min(H - cat.h, ny);
     cr = Math.floor((ny + cat.h / 2) / TILE);
-    if (!(inBounds(cr, cc) && state.treeHp[cr][cc] > 0)) cat.y = ny;
+    if (!isBlocked(cr, cc)) cat.y = ny;
+    // step onto the door → go indoors
+    const dc = catCell();
+    if (inBounds(dc.r, dc.c) && state.tiles[dc.r][dc.c] === T.DOOR) enterHouse();
   }
 
   function updateFarm(dt) {
@@ -654,6 +696,8 @@
       ctx.fillStyle = "#5a3a20"; ctx.fillRect(x + 4, y + 9, TILE - 8, 3);
       const cnt = state.bin.length;
       if (cnt > 0) { ctx.fillStyle = "#ffe8c2"; ctx.font = "bold 9px Segoe UI"; ctx.textAlign = "center"; ctx.fillText(cnt, x + 16, y + 20); ctx.textAlign = "left"; }
+    } else if (type === T.WALL || type === T.DOOR) {
+      drawGrass(x, y, r, c);   // ground under the farmhouse footprint
     }
   }
   function drawWeed(r, c) {
@@ -827,6 +871,7 @@
     ctx.fillStyle = "#8a5a30"; ctx.fillRect(GATE_COLS[0] * TILE, 0, GATE_COLS.length * TILE, 6);
     ctx.fillStyle = "#ffe8c2"; ctx.font = "bold 11px Segoe UI"; ctx.textAlign = "center";
     ctx.fillText("▲ TOWN", (GATE_COLS[0] + GATE_COLS.length / 2) * TILE, 17); ctx.textAlign = "left";
+    drawFarmhouse();
     for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) drawTree(r, c);
     // highlight tile under cat
     const { r, c } = catCell();
@@ -836,11 +881,32 @@
     const na = nightAlpha();
     if (na > 0.01) { ctx.fillStyle = `rgba(18,22,64,${na})`; ctx.fillRect(0, 0, W, H); }
     if (state.mode === "play") {
-      if (inBounds(r, c) && state.tiles[r][c] === T.BED) drawPrompt(cat.x + 16, cat.y - 14, "Space: sleep 🛏️");
-      else if (inBounds(r, c) && state.tiles[r][c] === T.BIN) drawPrompt(cat.x + 16, cat.y - 14, "Ship on sleep 📦");
+      if (r === HOUSE.doorR + 1 && c === HOUSE.doorC) drawPrompt(cat.x + 16, cat.y - 14, "↑ enter house 🏠");
       else if (adjacentTree()) drawPrompt(cat.x + 16, cat.y - 14, "F: chop 🪓");
       else if (nearWater()) drawPrompt(cat.x + 16, cat.y - 14, "Space: fish 🎣");
     }
+  }
+
+  function drawFarmhouse() {
+    const x0 = HOUSE.c0 * TILE, y0 = HOUSE.r0 * TILE;
+    const w = (HOUSE.c1 - HOUSE.c0 + 1) * TILE, h = (HOUSE.r1 - HOUSE.r0 + 1) * TILE;
+    // body
+    ctx.fillStyle = "#caa06a"; ctx.fillRect(x0 + 3, y0 + h * 0.40, w - 6, h * 0.60 - 3);
+    ctx.fillStyle = "rgba(120,80,40,0.15)";
+    for (let yy = y0 + h * 0.46; yy < y0 + h - 6; yy += 11) ctx.fillRect(x0 + 3, yy, w - 6, 2);
+    // roof
+    ctx.fillStyle = "#8a4b3a";
+    ctx.beginPath(); ctx.moveTo(x0 - 3, y0 + h * 0.44); ctx.lineTo(x0 + w / 2, y0 - 2); ctx.lineTo(x0 + w + 3, y0 + h * 0.44); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#6e3a2c"; ctx.fillRect(x0 - 3, y0 + h * 0.42, w + 6, 4);
+    // door
+    const dx = HOUSE.doorC * TILE, dy = HOUSE.doorR * TILE;
+    ctx.fillStyle = "#5a3a1e"; roundRect(dx + 6, dy + 3, TILE - 12, TILE - 3, 3); ctx.fill();
+    ctx.fillStyle = "#3a2414"; ctx.fillRect(dx + TILE / 2 - 1, dy + 6, 2, TILE - 9);
+    ctx.fillStyle = "#ffd35c"; ctx.fillRect(dx + TILE - 12, dy + TILE / 2, 2, 2);
+    // window
+    ctx.fillStyle = "#bfe6ff"; ctx.fillRect(x0 + w - 30, y0 + h * 0.56, 14, 12);
+    ctx.strokeStyle = "#5a3a1e"; ctx.lineWidth = 2; ctx.strokeRect(x0 + w - 30, y0 + h * 0.56, 14, 12);
+    ctx.beginPath(); ctx.moveTo(x0 + w - 23, y0 + h * 0.56); ctx.lineTo(x0 + w - 23, y0 + h * 0.56 + 12); ctx.stroke(); ctx.lineWidth = 1;
   }
 
   function renderTown() {
@@ -874,6 +940,50 @@
     if (state.mode === "play") {
       const d = Math.hypot((cat.x + 16) - m.x, (cat.y + 16) - m.y);
       if (d < 56) drawPrompt(cat.x + 16, cat.y - 14, "Space: trade 🦝");
+    }
+  }
+
+  function drawBedBig(b) {
+    ctx.fillStyle = "rgba(0,0,0,0.18)"; ctx.fillRect(b.x - 2, b.y + b.h - 5, b.w + 4, 8);
+    ctx.fillStyle = "#6b4423"; roundRect(b.x, b.y, b.w, b.h, 8); ctx.fill();               // frame
+    ctx.fillStyle = "#7a4fa3"; roundRect(b.x + 4, b.y + 5, b.w - 8, b.h - 11, 6); ctx.fill(); // blanket
+    ctx.fillStyle = "#9b6fc4"; roundRect(b.x + 4, b.y + b.h * 0.52, b.w - 8, b.h * 0.48 - 6, 6); ctx.fill();
+    ctx.fillStyle = "#ffe8c2"; roundRect(b.x + 6, b.y + 6, 28, 18, 5); ctx.fill();         // pillow
+    ctx.fillStyle = "rgba(255,255,255,0.9)"; ctx.font = "bold 13px Segoe UI";
+    const zb = Math.sin(performance.now() / 500) * 2;
+    ctx.fillText("z", b.x + b.w - 16, b.y - 2 + zb); ctx.font = "10px Segoe UI"; ctx.fillText("z", b.x + b.w - 8, b.y - 8 + zb);
+  }
+  function drawBinBig(b) {
+    ctx.fillStyle = "rgba(0,0,0,0.18)"; ctx.fillRect(b.x - 1, b.y + b.h - 3, b.w + 2, 6);
+    ctx.fillStyle = "#7a5230"; roundRect(b.x, b.y, b.w, b.h, 4); ctx.fill();
+    ctx.fillStyle = "#9a6a40"; ctx.fillRect(b.x, b.y + 9, b.w, 3); ctx.fillRect(b.x, b.y + 20, b.w, 3); ctx.fillRect(b.x, b.y + 31, b.w, 3);
+    ctx.fillStyle = "#5a3a20"; ctx.fillRect(b.x - 1, b.y - 3, b.w + 2, 5);
+    if (state.bin.length > 0) { ctx.fillStyle = "#ffe8c2"; ctx.font = "bold 12px Segoe UI"; ctx.textAlign = "center"; ctx.fillText(state.bin.length, b.x + b.w / 2, b.y + b.h / 2 + 4); ctx.textAlign = "left"; }
+  }
+  function renderHouse() {
+    // wooden floor
+    ctx.fillStyle = "#caa06a"; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "rgba(120,80,40,0.12)";
+    for (let y = 0; y < H; y += 20) ctx.fillRect(0, y, W, 3);
+    for (let x = 0; x < W; x += 64) ctx.fillRect(x, 0, 2, H);
+    // walls
+    ctx.fillStyle = "#9a6a40"; ctx.fillRect(0, 0, W, 56); ctx.fillRect(0, 0, 56, H); ctx.fillRect(W - 56, 0, 56, H); ctx.fillRect(0, H - 56, W, 56);
+    ctx.fillStyle = "#b98a55"; ctx.fillRect(0, 50, W, 8); ctx.fillRect(0, H - 58, W, 6);
+    // rug
+    ctx.fillStyle = "#7a4fa3"; roundRect(W / 2 - 96, H / 2 - 46, 192, 116, 16); ctx.fill();
+    ctx.fillStyle = "#9b6fc4"; roundRect(W / 2 - 78, H / 2 - 32, 156, 88, 12); ctx.fill();
+    // furniture
+    drawBedBig(HOUSE_BED); drawBinBig(HOUSE_BIN);
+    // exit door (bottom center)
+    ctx.fillStyle = "#5a3a1e"; ctx.fillRect(W / 2 - 26, H - 56, 52, 52);
+    ctx.fillStyle = "#caa06a"; ctx.fillRect(W / 2 - 22, H - 52, 44, 44);
+    ctx.fillStyle = "#3a2414"; ctx.fillRect(W / 2 - 1, H - 50, 2, 40);
+    ctx.fillStyle = "#ffd35c"; ctx.fillRect(W / 2 + 14, H - 30, 2, 2);
+    ctx.fillStyle = "#fff7e6"; ctx.font = "bold 10px Segoe UI"; ctx.textAlign = "center"; ctx.fillText("▼ exit", W / 2, H - 60); ctx.textAlign = "left";
+    drawCat(); drawParticles();
+    if (state.mode === "play") {
+      if (nearHouseBed()) drawPrompt(cat.x + 16, cat.y - 14, "Space: sleep 🛏️");
+      else if (nearHouseBin()) drawPrompt(cat.x + 16, cat.y - 14, "Ships on sleep 📦");
     }
   }
 
@@ -949,14 +1059,16 @@
     const dt = Math.min(50, now - lastTime); lastTime = now;
     if (state.mode === "play" || state.mode === "fishing") update(dt);
     if (state.mode === "fishing") updateFishing(dt);
-    if (state.scene === "farm") renderFarm(); else renderTown();
+    if (state.scene === "farm") renderFarm();
+    else if (state.scene === "house") renderHouse();
+    else renderTown();
     if (state.mode === "summary") renderSummary();
     requestAnimationFrame(loop);
   }
 
   // ================= Boot =================
   buildWorld(); buildSeedSlots(); updateHUD();
-  showMessage("Till (F) → Plant (G) → Water (R) → Harvest (E) → Sleep 🛏️ to get paid!");
+  showMessage("Till (F) → Plant (G) → Water (R) → Harvest (E) → enter the 🏠 to sleep & get paid!");
   requestAnimationFrame(loop);
 })();
 </script>
