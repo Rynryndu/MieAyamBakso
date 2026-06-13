@@ -26,13 +26,13 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    gap: 14px;
+    gap: 12px;
     padding: 16px;
   }
   h1 {
     margin: 0;
     color: #ffe8c2;
-    font-size: 26px;
+    font-size: 24px;
     letter-spacing: 1px;
     text-shadow: 2px 2px 0 #1c2f27;
   }
@@ -51,11 +51,11 @@
   /* HUD overlay */
   #hud {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
+    top: 8px;
+    left: 8px;
+    right: 8px;
     display: flex;
-    gap: 10px;
+    gap: 7px;
     flex-wrap: wrap;
     pointer-events: none;
     align-items: stretch;
@@ -64,18 +64,17 @@
     background: rgba(255, 247, 230, 0.94);
     border: 3px solid #3a2a20;
     border-radius: 8px;
-    padding: 6px 12px;
+    padding: 5px 10px;
     font-weight: 700;
-    font-size: 15px;
+    font-size: 14px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     box-shadow: 0 3px 0 rgba(0,0,0,0.25);
   }
-  .chip small { font-weight: 600; opacity: 0.7; font-size: 11px; }
-  #seed-slots { gap: 8px; display: flex; }
+  .chip small { font-weight: 600; opacity: 0.7; font-size: 10px; }
+  #seed-slots { gap: 7px; display: flex; }
   .seed-slot {
-    cursor: default;
     flex-direction: column;
     gap: 0;
     line-height: 1.1;
@@ -95,7 +94,7 @@
   }
   #message {
     position: absolute;
-    bottom: 14px;
+    bottom: 12px;
     left: 50%;
     transform: translateX(-50%);
     background: rgba(58, 42, 32, 0.92);
@@ -108,15 +107,54 @@
     transition: opacity 0.25s;
     pointer-events: none;
     white-space: nowrap;
+    max-width: 90%;
   }
   #message.show { opacity: 1; }
+
+  /* Dialog / trade overlay */
+  #dialog {
+    position: absolute;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 560px;
+    background: var(--panel);
+    border: 4px solid #3a2a20;
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: 0 8px 0 rgba(0,0,0,0.3);
+    display: none;
+    font-size: 14px;
+  }
+  #dialog.show { display: block; }
+  #dialog .name { font-weight: 800; font-size: 17px; color: #b5532a; margin-bottom: 2px; }
+  #dialog .line { margin-bottom: 10px; font-style: italic; }
+  #dialog .opt {
+    padding: 6px 10px;
+    border-radius: 7px;
+    margin: 4px 0;
+    background: #fff;
+    border: 2px solid #d9c3a0;
+    cursor: pointer;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  #dialog .opt:hover { background: #fff3d0; }
+  #dialog .opt .k {
+    background: #3a2a20; color: #ffe8c2; border-radius: 5px;
+    padding: 1px 7px; font-weight: 700; font-size: 12px;
+  }
+  #dialog .opt.disabled { opacity: 0.45; cursor: default; }
+
   #controls {
     background: var(--panel);
     border: 4px solid #3a2a20;
     border-radius: 10px;
-    padding: 12px 18px;
-    max-width: 640px;
-    font-size: 13.5px;
+    padding: 10px 16px;
+    max-width: 680px;
+    font-size: 13px;
     line-height: 1.7;
   }
   #controls b { color: #b5532a; }
@@ -124,9 +162,9 @@
     background: #3a2a20;
     color: #ffe8c2;
     border-radius: 5px;
-    padding: 1px 7px;
+    padding: 1px 6px;
     font-family: inherit;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 700;
     box-shadow: 0 2px 0 #1c130d;
   }
@@ -140,19 +178,26 @@
     <div id="hud">
       <div class="chip">💰 <span id="gold">0</span> <small>Gold</small></div>
       <div class="chip">🕐 Day <span id="day">1</span></div>
+      <div class="chip">💧 <span id="water">10</span>/10 <small>can</small></div>
+      <div class="chip">🐟 <span id="fish">0</span> <small>fish</small></div>
       <div id="seed-slots" style="display:flex"></div>
     </div>
     <div id="message"></div>
+    <div id="dialog"></div>
   </div>
 
   <div id="controls">
-    <b>Move:</b> <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or Arrow keys &nbsp;•&nbsp;
-    <b>Till soil:</b> <kbd>F</kbd> &nbsp;•&nbsp;
-    <b>Plant seed:</b> <kbd>G</kbd> &nbsp;•&nbsp;
+    <b>Move:</b> <kbd>WASD</kbd>/<kbd>↑↓←→</kbd> &nbsp;•&nbsp;
+    <b>Till:</b> <kbd>F</kbd> &nbsp;•&nbsp;
+    <b>Plant:</b> <kbd>G</kbd> &nbsp;•&nbsp;
     <b>Harvest:</b> <kbd>E</kbd> &nbsp;•&nbsp;
-    <b>Select seed:</b> <kbd>1</kbd><kbd>2</kbd> &nbsp;•&nbsp;
-    <b>Water:</b> walk onto a pond tile to refill seeds at the shop fountain.<br>
-    Till grass → plant a seed on soil → wait for it to grow → harvest to auto-sell for Gold. 🌱
+    <b>Water can:</b> <kbd>C</kbd> &nbsp;•&nbsp;
+    <b>Paw-hoe weeds:</b> <kbd>H</kbd> &nbsp;•&nbsp;
+    <b>Refill can:</b> <kbd>R</kbd> (by pond) &nbsp;•&nbsp;
+    <b>Seed:</b> <kbd>1</kbd><kbd>2</kbd> &nbsp;•&nbsp;
+    <b>Interact / Fish / Talk:</b> <kbd>Space</kbd> &nbsp;•&nbsp;
+    <b>Close:</b> <kbd>Esc</kbd><br>
+    💧 Watering speeds growth · 🌿 weeds pause crops & must be hoed · 🎣 fish at the big pond · 🏘️ visit the village to trade with the animals!
   </div>
 
 <script>
@@ -167,90 +212,123 @@
   const ctx = canvas.getContext("2d");
   ctx.imageSmoothingEnabled = false;
 
-  // Tile types
-  const T = { GRASS: 0, SOIL: 1, WATER: 2 };
+  const T = { GRASS: 0, SOIL: 1, WATER: 2, PATH: 3 };
+  const CAN_MAX = 10;
+  const WATER_DURATION = 8000;   // ms a tile stays watered
+  const WATER_BOOST = 2.6;       // growth multiplier while watered
 
-  // Crop definitions
   const CROPS = {
-    catnip:     { name: "Catnip",      key: "1", seedColor: "#7bbf54", plantColor: "#a3d977", flower: "#c98bff", growMs: 6000,  sell: 18, emoji: "🌿" },
-    fishberry:  { name: "Fishberries", key: "2", seedColor: "#5b8fd6", plantColor: "#79b0e8", flower: "#ff6f91", growMs: 9000,  sell: 32, emoji: "🫐" },
+    catnip:    { name: "Catnip",      key: "1", seedColor: "#7bbf54", plantColor: "#a3d977", flower: "#c98bff", growMs: 7000,  sell: 18, emoji: "🌿" },
+    fishberry: { name: "Fishberries", key: "2", seedColor: "#5b8fd6", plantColor: "#79b0e8", flower: "#ff6f91", growMs: 11000, sell: 32, emoji: "🫐" },
   };
   const CROP_KEYS = Object.keys(CROPS);
 
+  // Fish that can be caught
+  const FISH_TYPES = [
+    { name: "Minnow",    value: 12, color: "#9fbf8f", weight: 50 },
+    { name: "Bass",      value: 28, color: "#6f8f5f", weight: 32 },
+    { name: "Golden Koi", value: 70, color: "#f4c145", weight: 18 },
+  ];
+
   // ---------- Game state ----------
   const state = {
+    mode: "play",          // "play" | "dialog" | "fishing"
     gold: 60,
     day: 1,
     dayTimer: 0,
     seeds: { catnip: 6, fishberry: 3 },
+    fishItems: [],          // caught fish {name, value}
+    can: CAN_MAX,           // watering can charges
     selected: "catnip",
-    tiles: [],     // tile type grid
-    crops: [],     // crop objects or null per cell
+    tiles: [],
+    crops: [],
+    weeds: [],              // boolean per cell
+    watered: [],            // expiry timestamp per cell
   };
 
-  // Build the world
+  // ---------- NPC villagers ----------
+  // role handlers are attached after helpers are defined
+  const NPCS = [
+    { id: "barkley", name: "Barkley the Merchant", emoji: "🐶", color: "#c98b52", r: 2, c: 8,
+      line: "Woof! Reel in any fish? I'll buy 'em fresh." },
+    { id: "hazel", name: "Hazel the Seed Seller", emoji: "🐰", color: "#e8d8c0", r: 2, c: 11,
+      line: "Fresh seeds, hippity-hop! What'll it be?" },
+    { id: "rocky", name: "Rocky the Forager", emoji: "🦝", color: "#8a8f99", r: 2, c: 14,
+      line: "Psst... trade me some fish for rare goodies?" },
+  ];
+  const npcAt = (r, c) => NPCS.find(n => n.r === r && n.c === c);
+
+  // ---------- World ----------
   function buildWorld() {
     for (let r = 0; r < ROWS; r++) {
       state.tiles[r] = [];
       state.crops[r] = [];
+      state.weeds[r] = [];
+      state.watered[r] = [];
       for (let c = 0; c < COLS; c++) {
         state.tiles[r][c] = T.GRASS;
         state.crops[r][c] = null;
+        state.weeds[r][c] = false;
+        state.watered[r][c] = 0;
       }
     }
-    // A little pond in the bottom-right (water source / "shop fountain")
-    const pond = [[12,16],[12,17],[13,16],[13,17],[13,18],[14,17]];
-    pond.forEach(([r,c]) => { if (state.tiles[r]) state.tiles[r][c] = T.WATER; });
-    // Decorative top-left pond
-    [[1,1],[1,2],[2,1],[2,2]].forEach(([r,c]) => state.tiles[r][c] = T.WATER);
+    // Village path strip along the top for the animal town
+    for (let c = 6; c <= 15; c++) { state.tiles[1][c] = T.PATH; state.tiles[2][c] = T.PATH; state.tiles[3][c] = T.PATH; }
+    // Big fishing pond, bottom-right
+    const pond = [
+      [11,15],[11,16],[11,17],[11,18],
+      [12,15],[12,16],[12,17],[12,18],[12,19],
+      [13,15],[13,16],[13,17],[13,18],[13,19],
+      [14,16],[14,17],[14,18],[14,19],
+    ];
+    pond.forEach(([r,c]) => { if (state.tiles[r] && state.tiles[r][c] !== undefined) state.tiles[r][c] = T.WATER; });
   }
 
   // ---------- Player (the cat) ----------
   const cat = {
-    x: 5 * TILE,
-    y: 7 * TILE,
-    w: TILE,
-    h: TILE,
-    speed: 2.4,
-    dir: "down",
-    moving: false,
-    animTime: 0,
+    x: 5 * TILE, y: 7 * TILE, w: TILE, h: TILE,
+    speed: 2.4, dir: "down", moving: false, animTime: 0,
   };
-
   function catCell() {
-    return {
-      c: Math.floor((cat.x + cat.w / 2) / TILE),
-      r: Math.floor((cat.y + cat.h / 2) / TILE),
-    };
+    return { c: Math.floor((cat.x + cat.w / 2) / TILE), r: Math.floor((cat.y + cat.h / 2) / TILE) };
   }
+  const inBounds = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS;
 
   // ---------- Input ----------
   const keys = {};
   window.addEventListener("keydown", (e) => {
     const k = e.key.toLowerCase();
     if (["arrowup","arrowdown","arrowleft","arrowright"," "].includes(k)) e.preventDefault();
-    if (!keys[k]) handlePress(k);   // single-fire actions
+    if (!keys[k]) handlePress(k);
     keys[k] = true;
   });
   window.addEventListener("keyup", (e) => { keys[e.key.toLowerCase()] = false; });
 
   function handlePress(k) {
+    if (state.mode === "fishing") { fishingInput(k); return; }
+    if (state.mode === "dialog") { dialogInput(k); return; }
+    // play mode
     if (k === "f") tillTile();
     else if (k === "g") plantSeed();
     else if (k === "e") harvest();
+    else if (k === "c") waterTile();
+    else if (k === "h") hoeWeeds();
+    else if (k === "r") refillCan();
     else if (k === "1") selectSeed("catnip");
     else if (k === "2") selectSeed("fishberry");
+    else if (k === " " || k === "enter") interact();
   }
 
-  // ---------- Actions ----------
+  // ---------- Farming actions ----------
   function tillTile() {
     const { r, c } = catCell();
     if (!inBounds(r, c)) return;
-    if (state.tiles[r][c] === T.GRASS) {
+    if (npcAt(r, c)) return;
+    if (state.tiles[r][c] === T.GRASS || state.tiles[r][c] === T.PATH) {
       state.tiles[r][c] = T.SOIL;
       showMessage("🪓 Tilled the soil!");
     } else if (state.tiles[r][c] === T.WATER) {
-      showMessage("💧 That's water — can't till it.");
+      showMessage("💧 That's water — try fishing here (Space).");
     } else {
       showMessage("Already tilled here.");
     }
@@ -259,21 +337,13 @@
   function plantSeed() {
     const { r, c } = catCell();
     if (!inBounds(r, c)) return;
-    if (state.tiles[r][c] !== T.SOIL) {
-      showMessage("🌱 You need tilled soil first (press F).");
-      return;
-    }
-    if (state.crops[r][c]) {
-      showMessage("Something is already growing here!");
-      return;
-    }
+    if (state.tiles[r][c] !== T.SOIL) { showMessage("🌱 Need tilled soil first (press F)."); return; }
+    if (state.weeds[r][c]) { showMessage("🌿 Clear the weeds first (press H)."); return; }
+    if (state.crops[r][c]) { showMessage("Something is already growing here!"); return; }
     const type = state.selected;
-    if (state.seeds[type] <= 0) {
-      showMessage("Out of " + CROPS[type].name + " seeds!");
-      return;
-    }
+    if (state.seeds[type] <= 0) { showMessage("Out of " + CROPS[type].name + " seeds! Visit Hazel."); return; }
     state.seeds[type]--;
-    state.crops[r][c] = { type, planted: performance.now(), grown: false };
+    state.crops[r][c] = { type, growth: 0, grown: false };
     updateHUD();
     showMessage("🌱 Planted " + CROPS[type].name + "!");
   }
@@ -283,16 +353,45 @@
     if (!inBounds(r, c)) return;
     const crop = state.crops[r][c];
     if (!crop) { showMessage("Nothing to harvest here."); return; }
-    if (!crop.grown) { showMessage("Still growing... be patient! 🐱"); return; }
+    if (!crop.grown) { showMessage("Still growing... water it to hurry! 🐱"); return; }
     const def = CROPS[crop.type];
     state.gold += def.sell;
-    // Harvesting also returns one seed sometimes — cozy generosity
     const bonus = Math.random() < 0.5 ? 1 : 0;
     state.seeds[crop.type] += bonus;
     state.crops[r][c] = null;
-    state.tiles[r][c] = T.SOIL; // soil remains, ready to replant
+    state.tiles[r][c] = T.SOIL;
     updateHUD();
     showMessage("✨ Harvested " + def.name + " +" + def.sell + "g" + (bonus ? " (+1 seed!)" : ""));
+  }
+
+  function waterTile() {
+    const { r, c } = catCell();
+    if (!inBounds(r, c)) return;
+    if (state.tiles[r][c] !== T.SOIL) { showMessage("💧 Watering can only works on soil."); return; }
+    if (state.can <= 0) { showMessage("💧 Can's empty! Refill at the pond (R)."); return; }
+    state.can--;
+    state.watered[r][c] = performance.now() + WATER_DURATION;
+    updateHUD();
+    showMessage("💧 Watered! Growth boosted.");
+  }
+
+  function hoeWeeds() {
+    const { r, c } = catCell();
+    if (!inBounds(r, c)) return;
+    if (!state.weeds[r][c]) { showMessage("🪓 No weeds here to clear."); return; }
+    state.weeds[r][c] = false;
+    state.gold += 2; // sell the compost
+    if (Math.random() < 0.25) { state.seeds.catnip++; showMessage("🌿 Cleared weeds! +2g and found a Catnip seed!"); }
+    else showMessage("🌿 Cleared weeds! +2g compost.");
+    updateHUD();
+  }
+
+  function refillCan() {
+    if (!nearWater()) { showMessage("💧 Stand next to the pond to refill (R)."); return; }
+    if (state.can >= CAN_MAX) { showMessage("💧 Watering can is already full."); return; }
+    state.can = CAN_MAX;
+    updateHUD();
+    showMessage("💧 Refilled the watering can!");
   }
 
   function selectSeed(type) {
@@ -301,33 +400,220 @@
     showMessage("Selected " + CROPS[type].name + " " + CROPS[type].emoji);
   }
 
-  function inBounds(r, c) { return r >= 0 && r < ROWS && c >= 0 && c < COLS; }
-
-  // Walking onto the pond refills seeds at the "shop" for a little gold
-  let lastRefill = 0;
-  function checkFountain() {
+  // ---------- Interaction: NPC talk or fishing ----------
+  function nearbyNPC() {
     const { r, c } = catCell();
-    if (!inBounds(r, c)) return;
-    if (state.tiles[r][c] === T.WATER && performance.now() - lastRefill > 1500) {
-      // Buy a small seed bundle if affordable
-      if (state.gold >= 20) {
-        state.gold -= 20;
-        state.seeds.catnip += 2;
-        state.seeds.fishberry += 1;
-        lastRefill = performance.now();
-        updateHUD();
-        showMessage("🛒 Fountain shop: bought seed bundle for 20g!");
-      } else {
-        if (performance.now() - lastRefill > 1500) {
-          lastRefill = performance.now();
-          showMessage("💧 Fountain shop: need 20g for a seed bundle.");
-        }
-      }
+    let best = null, bestD = 99;
+    for (const n of NPCS) {
+      const d = Math.max(Math.abs(n.r - r), Math.abs(n.c - c));
+      if (d <= 1 && d < bestD) { best = n; bestD = d; }
     }
+    return best;
+  }
+  function nearWater() {
+    const { r, c } = catCell();
+    for (let dr = -1; dr <= 1; dr++)
+      for (let dc = -1; dc <= 1; dc++) {
+        const nr = r + dr, nc = c + dc;
+        if (inBounds(nr, nc) && state.tiles[nr][nc] === T.WATER) return true;
+      }
+    return false;
+  }
+  function interact() {
+    const npc = nearbyNPC();
+    if (npc) { openDialog(npc); return; }
+    if (nearWater()) { startFishing(); return; }
+    showMessage("Nothing to interact with here.");
   }
 
-  // ---------- Update ----------
-  let lastTime = performance.now();
+  // ---------- NPC trading dialog ----------
+  const dialogEl = document.getElementById("dialog");
+  let dialogOptions = [];
+
+  function tradeOptions(npc) {
+    if (npc.id === "barkley") {
+      const total = state.fishItems.reduce((s, f) => s + f.value, 0);
+      return [
+        { label: `Sell all fish (${state.fishItems.length}) for ${total}g`, enabled: state.fishItems.length > 0,
+          run: () => { state.gold += total; state.fishItems = []; showMessage(`🐶 Sold fish for ${total}g!`); } },
+        { label: `Sell 1 fish (${state.fishItems[0] ? state.fishItems[0].value : 0}g)`, enabled: state.fishItems.length > 0,
+          run: () => { const f = state.fishItems.shift(); state.gold += f.value; showMessage(`🐶 Sold a ${f.name} for ${f.value}g!`); } },
+      ];
+    }
+    if (npc.id === "hazel") {
+      return [
+        { label: "Buy 3 Catnip seeds — 15g", enabled: state.gold >= 15,
+          run: () => { state.gold -= 15; state.seeds.catnip += 3; showMessage("🐰 Bought 3 Catnip seeds!"); } },
+        { label: "Buy 2 Fishberry seeds — 24g", enabled: state.gold >= 24,
+          run: () => { state.gold -= 24; state.seeds.fishberry += 2; showMessage("🐰 Bought 2 Fishberry seeds!"); } },
+      ];
+    }
+    if (npc.id === "rocky") {
+      return [
+        { label: "Trade 2 fish → 1 Fishberry seed + 5g", enabled: state.fishItems.length >= 2,
+          run: () => { state.fishItems.splice(0, 2); state.seeds.fishberry += 1; state.gold += 5;
+                       showMessage("🦝 Bartered 2 fish for a Fishberry seed + 5g!"); } },
+        { label: "Trade 5 fish → 40g jackpot", enabled: state.fishItems.length >= 5,
+          run: () => { state.fishItems.splice(0, 5); state.gold += 40; showMessage("🦝 Jackpot! Traded 5 fish for 40g!"); } },
+      ];
+    }
+    return [];
+  }
+
+  function openDialog(npc) {
+    state.mode = "dialog";
+    renderDialog(npc);
+  }
+  function renderDialog(npc) {
+    dialogOptions = tradeOptions(npc);
+    let html = `<div class="name">${npc.emoji} ${npc.name}</div><div class="line">"${npc.line}"</div>`;
+    dialogOptions.forEach((o, i) => {
+      html += `<div class="opt ${o.enabled ? "" : "disabled"}" data-i="${i}"><span class="k">${i + 1}</span> ${o.label}</div>`;
+    });
+    html += `<div class="opt" data-close="1"><span class="k">Esc</span> Leave</div>`;
+    dialogEl.innerHTML = html;
+    dialogEl.classList.add("show");
+    dialogEl.dataset.npc = npc.id;
+    // mouse support
+    dialogEl.querySelectorAll(".opt").forEach(el => {
+      el.onclick = () => {
+        if (el.dataset.close) { closeDialog(); return; }
+        const i = +el.dataset.i;
+        runOption(i, npc);
+      };
+    });
+  }
+  function runOption(i, npc) {
+    const o = dialogOptions[i];
+    if (!o || !o.enabled) { showMessage("Can't do that right now."); return; }
+    o.run();
+    updateHUD();
+    renderDialog(npc); // refresh counts/prices
+  }
+  function dialogInput(k) {
+    if (k === "escape" || k === " " ) { closeDialog(); return; }
+    const npc = NPCS.find(n => n.id === dialogEl.dataset.npc);
+    if (!npc) { closeDialog(); return; }
+    const idx = parseInt(k, 10);
+    if (!isNaN(idx) && idx >= 1) runOption(idx - 1, npc);
+  }
+  function closeDialog() {
+    dialogEl.classList.remove("show");
+    state.mode = "play";
+  }
+
+  // ---------- Fishing minigame ----------
+  const fishing = { phase: "wait", biteAt: 0, timer: 0, cursor: 0, dir: 1, zone: 0.5, zoneW: 0.18, caught: null };
+  function startFishing() {
+    state.mode = "fishing";
+    fishing.phase = "wait";
+    fishing.timer = 0;
+    fishing.biteAt = 800 + Math.random() * 1800;
+    fishing.caught = null;
+    cat.dir = "down";
+    showMessage("🎣 Cast your line... wait for a bite!");
+  }
+  function fishingInput(k) {
+    if (k === "escape") { state.mode = "play"; return; }
+    if (k !== " " && k !== "enter") return;
+    if (fishing.phase === "wait") {
+      // pressing too early scares the fish
+      fishing.phase = "done";
+      fishing.caught = null;
+      showMessage("🎣 Too early — it got away!");
+    } else if (fishing.phase === "active") {
+      const dist = Math.abs(fishing.cursor - fishing.zone);
+      if (dist <= fishing.zoneW / 2) {
+        // closer to center = better fish
+        const quality = 1 - dist / (fishing.zoneW / 2);
+        fishing.caught = pickFish(quality);
+        state.fishItems.push({ name: fishing.caught.name, value: fishing.caught.value });
+        updateHUD();
+        showMessage(`🎣 Caught a ${fishing.caught.name}! (+1 fish, worth ${fishing.caught.value}g)`);
+      } else {
+        fishing.caught = null;
+        showMessage("🎣 Missed! The fish slipped away.");
+      }
+      fishing.phase = "result";
+    } else if (fishing.phase === "result" || fishing.phase === "done") {
+      state.mode = "play";
+    }
+  }
+  function pickFish(quality) {
+    // higher quality biases toward rarer fish
+    const roll = Math.random() * (quality > 0.7 ? 60 : 100);
+    let acc = 0;
+    const order = quality > 0.6 ? [...FISH_TYPES].reverse() : FISH_TYPES;
+    for (const f of order) { acc += f.weight; if (roll <= acc) return f; }
+    return FISH_TYPES[0];
+  }
+  function updateFishing(dt) {
+    fishing.timer += dt;
+    if (fishing.phase === "wait") {
+      if (fishing.timer >= fishing.biteAt) { fishing.phase = "active"; fishing.timer = 0; fishing.cursor = 0; fishing.dir = 1; fishing.zone = 0.18 + Math.random() * 0.64; showMessage("🎣 A bite! Press Space in the green!"); }
+    } else if (fishing.phase === "active") {
+      fishing.cursor += fishing.dir * (dt / 1000) * 0.9;
+      if (fishing.cursor >= 1) { fishing.cursor = 1; fishing.dir = -1; }
+      if (fishing.cursor <= 0) { fishing.cursor = 0; fishing.dir = 1; }
+      if (fishing.timer >= 4500) { fishing.phase = "done"; fishing.caught = null; showMessage("🎣 The fish got bored and left..."); }
+    }
+  }
+  function renderFishing() {
+    ctx.fillStyle = "rgba(20,30,40,0.55)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const bx = 120, by = 200, bw = 400, bh = 80;
+    // panel
+    ctx.fillStyle = "#fff7e6";
+    roundRect(bx, by, bw, bh + 60, 12); ctx.fill();
+    ctx.strokeStyle = "#3a2a20"; ctx.lineWidth = 4; roundRect(bx, by, bw, bh + 60, 12); ctx.stroke();
+
+    ctx.fillStyle = "#5a3a2e";
+    ctx.font = "bold 18px Segoe UI, sans-serif";
+    ctx.textAlign = "center";
+
+    if (fishing.phase === "wait") {
+      ctx.fillText("🎣 Waiting for a bite...", canvas.width / 2, by + 40);
+      ctx.font = "13px Segoe UI, sans-serif";
+      ctx.fillText("Don't press too early!  (Esc to reel in)", canvas.width / 2, by + 66);
+    } else if (fishing.phase === "active") {
+      ctx.fillText("Press SPACE in the green zone!", canvas.width / 2, by + 30);
+      // bar
+      const barX = bx + 30, barY = by + 55, barW = bw - 60, barH = 22;
+      ctx.fillStyle = "#cdbfa6"; ctx.fillRect(barX, barY, barW, barH);
+      // green zone
+      ctx.fillStyle = "#6fcf6a";
+      ctx.fillRect(barX + (fishing.zone - fishing.zoneW / 2) * barW, barY, fishing.zoneW * barW, barH);
+      // cursor
+      ctx.fillStyle = "#b5532a";
+      ctx.fillRect(barX + fishing.cursor * barW - 3, barY - 6, 6, barH + 12);
+      ctx.strokeStyle = "#3a2a20"; ctx.lineWidth = 2; ctx.strokeRect(barX, barY, barW, barH);
+    } else {
+      // result / done
+      if (fishing.caught) {
+        ctx.fillText("✨ You caught a " + fishing.caught.name + "!", canvas.width / 2, by + 36);
+        ctx.font = "14px Segoe UI, sans-serif";
+        ctx.fillText("Worth " + fishing.caught.value + "g — sell it to Barkley in the village.", canvas.width / 2, by + 64);
+      } else {
+        ctx.fillText("No catch this time...", canvas.width / 2, by + 40);
+      }
+      ctx.font = "13px Segoe UI, sans-serif";
+      ctx.fillText("Press Space to continue", canvas.width / 2, by + 96);
+    }
+    ctx.textAlign = "left";
+    ctx.lineWidth = 1;
+  }
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  // ---------- Update (play mode world) ----------
+  let weedTimer = 0;
   function update(dt) {
     // Movement
     let dx = 0, dy = 0;
@@ -339,31 +625,59 @@
     cat.moving = dx !== 0 || dy !== 0;
     if (cat.moving) {
       const len = Math.hypot(dx, dy) || 1;
-      cat.x += (dx / len) * cat.speed * (dt / 16.67);
-      cat.y += (dy / len) * cat.speed * (dt / 16.67);
-      cat.x = Math.max(0, Math.min(canvas.width - cat.w, cat.x));
-      cat.y = Math.max(0, Math.min(canvas.height - cat.h, cat.y));
+      const step = cat.speed * (dt / 16.67);
+      tryMove((dx / len) * step, 0);
+      tryMove(0, (dy / len) * step);
       cat.animTime += dt;
-      checkFountain();
     }
 
-    // Crop growth
+    // Crop growth (watering boosts, weeds pause)
     const now = performance.now();
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         const crop = state.crops[r][c];
         if (crop && !crop.grown) {
-          if (now - crop.planted >= CROPS[crop.type].growMs) crop.grown = true;
+          if (state.weeds[r][c]) continue; // weeds choke growth
+          const boosted = state.watered[r][c] > now;
+          crop.growth += dt * (boosted ? WATER_BOOST : 1);
+          if (crop.growth >= CROPS[crop.type].growMs) crop.grown = true;
         }
       }
     }
 
-    // Day cycle (purely cosmetic counter)
+    // Weeds slowly sprout on soil & grass
+    weedTimer += dt;
+    if (weedTimer >= 3500) {
+      weedTimer = 0;
+      spawnWeed();
+    }
+
+    // Day cycle (cosmetic)
     state.dayTimer += dt;
-    if (state.dayTimer >= 30000) {
-      state.dayTimer = 0;
-      state.day++;
-      updateHUD();
+    if (state.dayTimer >= 30000) { state.dayTimer = 0; state.day++; updateHUD(); }
+  }
+
+  function tryMove(mx, my) {
+    const nx = Math.max(0, Math.min(canvas.width - cat.w, cat.x + mx));
+    const ny = Math.max(0, Math.min(canvas.height - cat.h, cat.y + my));
+    const cc = Math.floor((nx + cat.w / 2) / TILE);
+    const cr = Math.floor((ny + cat.h / 2) / TILE);
+    if (npcAt(cr, cc)) return; // can't walk through villagers
+    cat.x = nx; cat.y = ny;
+  }
+
+  function spawnWeed() {
+    let count = 0;
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (state.weeds[r][c]) count++;
+    if (count >= 14) return;
+    for (let tries = 0; tries < 12; tries++) {
+      const r = Math.floor(Math.random() * ROWS);
+      const c = Math.floor(Math.random() * COLS);
+      const t = state.tiles[r][c];
+      if ((t === T.GRASS || t === T.SOIL) && !state.weeds[r][c] && !npcAt(r, c)) {
+        state.weeds[r][c] = true;
+        return;
+      }
     }
   }
 
@@ -372,33 +686,56 @@
     const x = c * TILE, y = r * TILE;
     const type = state.tiles[r][c];
     if (type === T.GRASS) {
-      const shade = (r + c) % 2 === 0 ? "#6abe5e" : "#62b456";
-      ctx.fillStyle = shade;
+      ctx.fillStyle = (r + c) % 2 === 0 ? "#6abe5e" : "#62b456";
       ctx.fillRect(x, y, TILE, TILE);
-      // tiny grass blades
       ctx.fillStyle = "rgba(255,255,255,0.10)";
       ctx.fillRect(x + 6, y + 20, 2, 6);
       ctx.fillRect(x + 18, y + 10, 2, 6);
       ctx.fillRect(x + 25, y + 24, 2, 6);
-    } else if (type === T.SOIL) {
-      ctx.fillStyle = (r + c) % 2 === 0 ? "#8a5a36" : "#7e5230";
+    } else if (type === T.PATH) {
+      ctx.fillStyle = (r + c) % 2 === 0 ? "#d8c190" : "#cfb784";
       ctx.fillRect(x, y, TILE, TILE);
-      // furrow lines
+      ctx.fillStyle = "rgba(120,90,50,0.18)";
+      ctx.fillRect(x + 4, y + 6, 4, 4);
+      ctx.fillRect(x + 20, y + 18, 5, 4);
+    } else if (type === T.SOIL) {
+      const wet = state.watered[r][c] > performance.now();
+      ctx.fillStyle = wet ? ((r + c) % 2 === 0 ? "#5e3b22" : "#553420") : ((r + c) % 2 === 0 ? "#8a5a36" : "#7e5230");
+      ctx.fillRect(x, y, TILE, TILE);
       ctx.fillStyle = "rgba(0,0,0,0.12)";
       ctx.fillRect(x, y + 8, TILE, 2);
       ctx.fillRect(x, y + 20, TILE, 2);
       ctx.strokeStyle = "rgba(0,0,0,0.18)";
       ctx.strokeRect(x + 0.5, y + 0.5, TILE - 1, TILE - 1);
+      if (wet) {
+        ctx.fillStyle = "rgba(90,160,210,0.25)";
+        ctx.fillRect(x + 6, y + 6, 4, 4);
+        ctx.fillRect(x + 20, y + 16, 4, 4);
+      }
     } else if (type === T.WATER) {
       ctx.fillStyle = "#4aa3d6";
       ctx.fillRect(x, y, TILE, TILE);
-      // ripples
       const t = performance.now() / 400;
       ctx.fillStyle = "rgba(255,255,255,0.25)";
-      const ry = y + 12 + Math.sin(t + c) * 2;
-      ctx.fillRect(x + 5, ry, 10, 2);
+      ctx.fillRect(x + 5, y + 12 + Math.sin(t + c) * 2, 10, 2);
       ctx.fillRect(x + 18, y + 22 + Math.cos(t + r) * 2, 8, 2);
     }
+  }
+
+  function drawWeed(r, c) {
+    if (!state.weeds[r][c]) return;
+    const x = c * TILE, y = r * TILE;
+    ctx.strokeStyle = "#3f6e35";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x + 8, y + 26); ctx.lineTo(x + 14, y + 14);
+    ctx.moveTo(x + 16, y + 26); ctx.lineTo(x + 12, y + 12);
+    ctx.moveTo(x + 22, y + 26); ctx.lineTo(x + 20, y + 14);
+    ctx.stroke();
+    ctx.fillStyle = "#5a8f3f";
+    ctx.fillRect(x + 11, y + 11, 3, 3);
+    ctx.fillRect(x + 19, y + 13, 3, 3);
+    ctx.lineWidth = 1;
   }
 
   function drawCrop(r, c) {
@@ -406,32 +743,22 @@
     if (!crop) return;
     const def = CROPS[crop.type];
     const x = c * TILE, y = r * TILE;
-    const progress = Math.min(1, (performance.now() - crop.planted) / def.growMs);
-
+    const progress = Math.min(1, crop.growth / def.growMs);
     if (!crop.grown) {
-      // sprout grows taller with progress
       const h = 4 + progress * 16;
       ctx.fillStyle = def.plantColor;
       ctx.fillRect(x + TILE / 2 - 2, y + TILE - 6 - h, 4, h);
-      // little leaves
       ctx.fillStyle = def.seedColor;
       ctx.fillRect(x + TILE / 2 - 6, y + TILE - 8 - h * 0.6, 5, 3);
       ctx.fillRect(x + TILE / 2 + 1, y + TILE - 12 - h * 0.6, 5, 3);
     } else {
-      // full plant with a glowing flower + bobbing
       const bob = Math.sin(performance.now() / 300 + (r + c)) * 2;
       ctx.fillStyle = def.plantColor;
       ctx.fillRect(x + TILE / 2 - 2, y + 10, 4, 16);
       ctx.fillStyle = def.flower;
-      // flower blob
-      ctx.beginPath();
-      ctx.arc(x + TILE / 2, y + 9 + bob, 7, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(x + TILE / 2, y + 9 + bob, 7, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = "#fff4b8";
-      ctx.beginPath();
-      ctx.arc(x + TILE / 2, y + 9 + bob, 3, 0, Math.PI * 2);
-      ctx.fill();
-      // "ready" sparkle
+      ctx.beginPath(); ctx.arc(x + TILE / 2, y + 9 + bob, 3, 0, Math.PI * 2); ctx.fill();
       if (Math.sin(performance.now() / 200 + r + c) > 0.6) {
         ctx.fillStyle = "#fffbe0";
         ctx.fillRect(x + TILE - 9, y + 3, 3, 3);
@@ -439,61 +766,60 @@
     }
   }
 
+  function drawNPC(n) {
+    const x = n.c * TILE, y = n.r * TILE;
+    // shadow
+    ctx.fillStyle = "rgba(0,0,0,0.2)";
+    ctx.beginPath(); ctx.ellipse(x + 16, y + 30, 10, 4, 0, 0, Math.PI * 2); ctx.fill();
+    // body
+    ctx.fillStyle = n.color;
+    ctx.fillRect(x + 8, y + 12, 16, 16);
+    // head
+    ctx.fillRect(x + 9, y + 4, 14, 12);
+    // ears
+    ctx.beginPath(); ctx.moveTo(x + 9, y + 6); ctx.lineTo(x + 8, y); ctx.lineTo(x + 14, y + 5); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x + 23, y + 6); ctx.lineTo(x + 24, y); ctx.lineTo(x + 18, y + 5); ctx.fill();
+    // eyes
+    ctx.fillStyle = "#2c2018";
+    ctx.fillRect(x + 12, y + 8, 2, 3);
+    ctx.fillRect(x + 18, y + 8, 2, 3);
+    // emoji badge above head
+    ctx.font = "16px serif";
+    ctx.textAlign = "center";
+    ctx.fillText(n.emoji, x + 16, y - 4);
+    ctx.textAlign = "left";
+  }
+
   function drawCat() {
-    const x = Math.round(cat.x);
-    const y = Math.round(cat.y);
+    const x = Math.round(cat.x), y = Math.round(cat.y);
     const step = cat.moving ? Math.floor(cat.animTime / 120) % 2 : 0;
     const legY = step === 0 ? 0 : 1;
-
-    // shadow
     ctx.fillStyle = "rgba(0,0,0,0.20)";
-    ctx.beginPath();
-    ctx.ellipse(x + 16, y + 30, 11, 4, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x + 16, y + 30, 11, 4, 0, 0, Math.PI * 2); ctx.fill();
 
-    const body = "#f4a64f";   // orange tabby
-    const dark = "#d97f2c";
-    const belly = "#ffe0b8";
-
-    // tail (animated)
+    const body = "#f4a64f", dark = "#d97f2c", belly = "#ffe0b8";
     ctx.fillStyle = body;
     const tailWag = Math.sin(performance.now() / 250) * 4;
     ctx.fillRect(x + 24, y + 16 + (cat.dir === "up" ? 0 : 2), 6, 4);
     ctx.fillRect(x + 27, y + 12 + tailWag * 0.3, 4, 8);
-
-    // legs
     ctx.fillStyle = dark;
     ctx.fillRect(x + 9, y + 26 + legY, 4, 5);
     ctx.fillRect(x + 19, y + 26 - legY, 4, 5);
-
-    // body
     ctx.fillStyle = body;
     ctx.fillRect(x + 8, y + 14, 16, 14);
-    // belly
     ctx.fillStyle = belly;
     ctx.fillRect(x + 12, y + 20, 8, 7);
-
-    // stripes
     ctx.fillStyle = dark;
     ctx.fillRect(x + 10, y + 16, 12, 2);
     ctx.fillRect(x + 10, y + 22, 3, 2);
     ctx.fillRect(x + 21, y + 22, 2, 2);
-
-    // head
     ctx.fillStyle = body;
     ctx.fillRect(x + 9, y + 4, 14, 12);
-    // ears
-    ctx.beginPath();
-    ctx.moveTo(x + 9, y + 6); ctx.lineTo(x + 9, y - 1); ctx.lineTo(x + 14, y + 5); ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(x + 23, y + 6); ctx.lineTo(x + 23, y - 1); ctx.lineTo(x + 18, y + 5); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x + 9, y + 6); ctx.lineTo(x + 9, y - 1); ctx.lineTo(x + 14, y + 5); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x + 23, y + 6); ctx.lineTo(x + 23, y - 1); ctx.lineTo(x + 18, y + 5); ctx.fill();
     ctx.fillStyle = "#ffc0cb";
-    ctx.beginPath();
-    ctx.moveTo(x + 10, y + 4); ctx.lineTo(x + 10, y + 1); ctx.lineTo(x + 13, y + 4); ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(x + 22, y + 4); ctx.lineTo(x + 22, y + 1); ctx.lineTo(x + 19, y + 4); ctx.fill();
-
-    // face depends on direction
+    ctx.beginPath(); ctx.moveTo(x + 10, y + 4); ctx.lineTo(x + 10, y + 1); ctx.lineTo(x + 13, y + 4); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x + 22, y + 4); ctx.lineTo(x + 22, y + 1); ctx.lineTo(x + 19, y + 4); ctx.fill();
     ctx.fillStyle = "#2c2018";
     if (cat.dir === "down" || cat.dir === "left" || cat.dir === "right") {
       let ex1 = x + 12, ex2 = x + 19;
@@ -501,37 +827,26 @@
       if (cat.dir === "right") { ex1 = x + 15; ex2 = x + 20; }
       ctx.fillRect(ex1, y + 8, 2, 3);
       ctx.fillRect(ex2, y + 8, 2, 3);
-      // nose
       ctx.fillStyle = "#ff9aa2";
       ctx.fillRect(x + 15, y + 11, 2, 2);
-      // whiskers
       ctx.strokeStyle = "rgba(255,255,255,0.7)";
       ctx.beginPath();
       ctx.moveTo(x + 8, y + 11); ctx.lineTo(x + 13, y + 12);
       ctx.moveTo(x + 24, y + 11); ctx.lineTo(x + 19, y + 12);
       ctx.stroke();
     } else {
-      // facing up — back of head
       ctx.fillStyle = dark;
       ctx.fillRect(x + 11, y + 6, 10, 2);
     }
   }
 
   function render() {
-    // ground base
     ctx.fillStyle = "#6abe5e";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) drawTile(r, c);
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) { drawCrop(r, c); drawWeed(r, c); }
 
-    for (let r = 0; r < ROWS; r++)
-      for (let c = 0; c < COLS; c++)
-        drawTile(r, c);
-
-    // crops above tiles
-    for (let r = 0; r < ROWS; r++)
-      for (let c = 0; c < COLS; c++)
-        drawCrop(r, c);
-
-    // highlight the tile the cat is standing on
+    // tile highlight under cat
     const { r, c } = catCell();
     if (inBounds(r, c)) {
       ctx.strokeStyle = "rgba(255,255,255,0.85)";
@@ -540,12 +855,33 @@
       ctx.lineWidth = 1;
     }
 
+    NPCS.forEach(drawNPC);
     drawCat();
+
+    // interaction prompt
+    if (state.mode === "play") {
+      const npc = nearbyNPC();
+      if (npc) drawPrompt(npc.c * TILE + 16, npc.r * TILE - 18, "Space: talk");
+      else if (nearWater()) drawPrompt(cat.x + 16, cat.y - 16, "Space: fish 🎣");
+    }
+  }
+
+  function drawPrompt(cx, cy, text) {
+    ctx.font = "bold 11px Segoe UI, sans-serif";
+    ctx.textAlign = "center";
+    const w = ctx.measureText(text).width + 14;
+    ctx.fillStyle = "rgba(58,42,32,0.92)";
+    roundRect(cx - w / 2, cy - 14, w, 18, 6); ctx.fill();
+    ctx.fillStyle = "#ffe8c2";
+    ctx.fillText(text, cx, cy - 1);
+    ctx.textAlign = "left";
   }
 
   // ---------- HUD ----------
   const goldEl = document.getElementById("gold");
   const dayEl = document.getElementById("day");
+  const waterEl = document.getElementById("water");
+  const fishEl = document.getElementById("fish");
   const slotsEl = document.getElementById("seed-slots");
 
   function buildSeedSlots() {
@@ -561,10 +897,11 @@
       slotsEl.appendChild(div);
     });
   }
-
   function updateHUD() {
     goldEl.textContent = state.gold;
     dayEl.textContent = state.day;
+    waterEl.textContent = state.can;
+    fishEl.textContent = state.fishItems.length;
     CROP_KEYS.forEach((type) => {
       const slot = slotsEl.querySelector(`[data-type="${type}"]`);
       if (!slot) return;
@@ -580,15 +917,18 @@
     msgEl.textContent = text;
     msgEl.classList.add("show");
     clearTimeout(msgTimer);
-    msgTimer = setTimeout(() => msgEl.classList.remove("show"), 1800);
+    msgTimer = setTimeout(() => msgEl.classList.remove("show"), 2000);
   }
 
   // ---------- Main loop ----------
+  let lastTime = performance.now();
   function loop(now) {
     const dt = Math.min(50, now - lastTime);
     lastTime = now;
-    update(dt);
+    if (state.mode === "play") update(dt);
+    else if (state.mode === "fishing") updateFishing(dt);
     render();
+    if (state.mode === "fishing") renderFishing();
     requestAnimationFrame(loop);
   }
 
@@ -596,7 +936,7 @@
   buildWorld();
   buildSeedSlots();
   updateHUD();
-  showMessage("Welcome to your farm! Press F to till the soil. 🐾");
+  showMessage("Welcome! Till soil (F), water crops (C), fish 🎣 & visit the village 🏘️");
   requestAnimationFrame(loop);
 })();
 </script>
