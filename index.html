@@ -5,168 +5,90 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Whiskers' Cozy Cat Farm 🐾</title>
 <style>
-  :root {
-    --panel: #fff7e6;
-    --ink: #5a3a2e;
-    --accent: #e8a35c;
-  }
   * { box-sizing: border-box; }
   html, body {
-    margin: 0;
-    height: 100%;
+    margin: 0; height: 100%;
     background: #2d4a3e;
     font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
-    color: var(--ink);
-    -webkit-font-smoothing: none;
+    color: #5a3a2e;
     image-rendering: pixelated;
   }
   body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    gap: 12px;
-    padding: 16px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 100vh; gap: 12px; padding: 16px;
   }
   h1 {
-    margin: 0;
-    color: #ffe8c2;
-    font-size: 24px;
-    letter-spacing: 1px;
-    text-shadow: 2px 2px 0 #1c2f27;
+    margin: 0; color: #ffe8c2; font-size: 24px;
+    letter-spacing: 1px; text-shadow: 2px 2px 0 #1c2f27;
   }
   #game-wrap {
     position: relative;
-    border: 6px solid #3a2a20;
-    border-radius: 10px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.45);
-    background: #6abe5e;
+    border: 6px solid #3a2a20; border-radius: 10px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.45); background: #6abe5e;
   }
-  canvas {
-    display: block;
-    image-rendering: pixelated;
-    border-radius: 4px;
-  }
-  /* HUD overlay */
+  canvas { display: block; image-rendering: pixelated; border-radius: 4px; }
   #hud {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    right: 8px;
-    display: flex;
-    gap: 7px;
-    flex-wrap: wrap;
-    pointer-events: none;
-    align-items: stretch;
+    position: absolute; top: 8px; left: 8px; right: 8px;
+    display: flex; gap: 7px; flex-wrap: wrap;
+    pointer-events: none; align-items: stretch;
   }
   .chip {
-    background: rgba(255, 247, 230, 0.94);
-    border: 3px solid #3a2a20;
-    border-radius: 8px;
-    padding: 5px 10px;
-    font-weight: 700;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
+    background: rgba(255,247,230,0.94);
+    border: 3px solid #3a2a20; border-radius: 8px;
+    padding: 5px 10px; font-weight: 700; font-size: 14px;
+    display: flex; align-items: center; gap: 5px;
     box-shadow: 0 3px 0 rgba(0,0,0,0.25);
   }
   .chip small { font-weight: 600; opacity: 0.7; font-size: 10px; }
-  #seed-slots { gap: 7px; display: flex; }
+  #seed-slots { gap: 6px; display: flex; }
   .seed-slot {
-    flex-direction: column;
-    gap: 0;
-    line-height: 1.1;
-    text-align: center;
+    flex-direction: column; gap: 0; line-height: 1.15;
+    text-align: center; font-size: 12.5px;
   }
-  .seed-slot.active {
-    outline: 3px solid #ffcf5c;
-    background: #fff3d0;
-  }
+  .seed-slot.active { outline: 3px solid #ffcf5c; background: #fff3d0; }
+  .seed-slot .meta { font-size: 10px; opacity: 0.8; }
   .seed-slot .key {
-    font-size: 10px;
-    background: #3a2a20;
-    color: #ffe8c2;
-    border-radius: 4px;
-    padding: 1px 4px;
-    margin-top: 2px;
+    font-size: 10px; background: #3a2a20; color: #ffe8c2;
+    border-radius: 4px; padding: 1px 4px; margin-top: 1px; display: inline-block;
   }
   #message {
-    position: absolute;
-    bottom: 12px;
-    left: 50%;
+    position: absolute; bottom: 12px; left: 50%;
     transform: translateX(-50%);
-    background: rgba(58, 42, 32, 0.92);
-    color: #ffe8c2;
-    padding: 7px 16px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-    opacity: 0;
-    transition: opacity 0.25s;
-    pointer-events: none;
-    white-space: nowrap;
-    max-width: 90%;
+    background: rgba(58,42,32,0.92); color: #ffe8c2;
+    padding: 7px 16px; border-radius: 20px;
+    font-size: 14px; font-weight: 600; opacity: 0;
+    transition: opacity 0.25s; pointer-events: none;
+    white-space: nowrap; max-width: 90%;
   }
   #message.show { opacity: 1; }
-
-  /* Dialog / trade overlay */
   #dialog {
-    position: absolute;
-    left: 50%;
-    bottom: 16px;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 560px;
-    background: var(--panel);
-    border: 4px solid #3a2a20;
-    border-radius: 12px;
-    padding: 14px 18px;
-    box-shadow: 0 8px 0 rgba(0,0,0,0.3);
-    display: none;
-    font-size: 14px;
+    position: absolute; left: 50%; bottom: 16px;
+    transform: translateX(-50%); width: 90%; max-width: 560px;
+    background: #fff7e6; border: 4px solid #3a2a20; border-radius: 12px;
+    padding: 14px 18px; box-shadow: 0 8px 0 rgba(0,0,0,0.3);
+    display: none; font-size: 14px;
   }
   #dialog.show { display: block; }
   #dialog .name { font-weight: 800; font-size: 17px; color: #b5532a; margin-bottom: 2px; }
   #dialog .line { margin-bottom: 10px; font-style: italic; }
   #dialog .opt {
-    padding: 6px 10px;
-    border-radius: 7px;
-    margin: 4px 0;
-    background: #fff;
-    border: 2px solid #d9c3a0;
-    cursor: pointer;
-    display: flex;
-    gap: 8px;
-    align-items: center;
+    padding: 6px 10px; border-radius: 7px; margin: 4px 0;
+    background: #fff; border: 2px solid #d9c3a0; cursor: pointer;
+    display: flex; gap: 8px; align-items: center;
   }
   #dialog .opt:hover { background: #fff3d0; }
-  #dialog .opt .k {
-    background: #3a2a20; color: #ffe8c2; border-radius: 5px;
-    padding: 1px 7px; font-weight: 700; font-size: 12px;
-  }
+  #dialog .opt .k { background: #3a2a20; color: #ffe8c2; border-radius: 5px; padding: 1px 7px; font-weight: 700; font-size: 12px; }
   #dialog .opt.disabled { opacity: 0.45; cursor: default; }
-
   #controls {
-    background: var(--panel);
-    border: 4px solid #3a2a20;
-    border-radius: 10px;
-    padding: 10px 16px;
-    max-width: 680px;
-    font-size: 13px;
-    line-height: 1.7;
+    background: #fff7e6; border: 4px solid #3a2a20; border-radius: 10px;
+    padding: 10px 16px; max-width: 700px; font-size: 13px; line-height: 1.7;
   }
   #controls b { color: #b5532a; }
   kbd {
-    background: #3a2a20;
-    color: #ffe8c2;
-    border-radius: 5px;
-    padding: 1px 6px;
-    font-family: inherit;
-    font-size: 11.5px;
-    font-weight: 700;
-    box-shadow: 0 2px 0 #1c130d;
+    background: #3a2a20; color: #ffe8c2; border-radius: 5px;
+    padding: 1px 6px; font-family: inherit; font-size: 11.5px;
+    font-weight: 700; box-shadow: 0 2px 0 #1c130d;
   }
 </style>
 </head>
@@ -178,9 +100,8 @@
     <div id="hud">
       <div class="chip">💰 <span id="gold">0</span> <small>Gold</small></div>
       <div class="chip">🕐 Day <span id="day">1</span></div>
-      <div class="chip">💧 <span id="water">10</span>/10 <small>can</small></div>
       <div class="chip">🐟 <span id="fish">0</span> <small>fish</small></div>
-      <div id="seed-slots" style="display:flex"></div>
+      <div id="seed-slots"></div>
     </div>
     <div id="message"></div>
     <div id="dialog"></div>
@@ -188,16 +109,15 @@
 
   <div id="controls">
     <b>Move:</b> <kbd>WASD</kbd>/<kbd>↑↓←→</kbd> &nbsp;•&nbsp;
+    <b>Select seed:</b> <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> &nbsp;•&nbsp;
     <b>Till:</b> <kbd>F</kbd> &nbsp;•&nbsp;
     <b>Plant:</b> <kbd>G</kbd> &nbsp;•&nbsp;
+    <b>Water:</b> <kbd>R</kbd> &nbsp;•&nbsp;
     <b>Harvest:</b> <kbd>E</kbd> &nbsp;•&nbsp;
-    <b>Water can:</b> <kbd>C</kbd> &nbsp;•&nbsp;
-    <b>Paw-hoe weeds:</b> <kbd>H</kbd> &nbsp;•&nbsp;
-    <b>Refill can:</b> <kbd>R</kbd> (by pond) &nbsp;•&nbsp;
-    <b>Seed:</b> <kbd>1</kbd><kbd>2</kbd> &nbsp;•&nbsp;
+    <b>Hoe weeds:</b> <kbd>H</kbd> &nbsp;•&nbsp;
     <b>Interact / Fish / Talk:</b> <kbd>Space</kbd> &nbsp;•&nbsp;
     <b>Close:</b> <kbd>Esc</kbd><br>
-    💧 Watering speeds growth · 🌿 weeds pause crops & must be hoed · 🎣 fish at the big pond · 🏘️ visit the village to trade with the animals!
+    💧 Crops only grow while the soil is <b>wet</b> — after each growth stage the soil dries out, so keep watering! · 🎣 fish at the pond · 🏘️ trade in the village.
   </div>
 
 <script>
@@ -205,93 +125,63 @@
   "use strict";
 
   // ---------- Config ----------
-  const TILE = 32;
-  const COLS = 20;
-  const ROWS = 15;
+  const TILE = 32, COLS = 20, ROWS = 15;
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
   ctx.imageSmoothingEnabled = false;
 
   const T = { GRASS: 0, SOIL: 1, WATER: 2, PATH: 3 };
-  const CAN_MAX = 10;
-  const WATER_DURATION = 8000;   // ms a tile stays watered
-  const WATER_BOOST = 2.6;       // growth multiplier while watered
+  const STAGES = 3;   // growth stages; each needs its own watering
 
+  // Seed economy exactly per spec
   const CROPS = {
-    catnip:    { name: "Catnip",      key: "1", seedColor: "#7bbf54", plantColor: "#a3d977", flower: "#c98bff", growMs: 7000,  sell: 18, emoji: "🌿" },
-    fishberry: { name: "Fishberries", key: "2", seedColor: "#5b8fd6", plantColor: "#79b0e8", flower: "#ff6f91", growMs: 11000, sell: 32, emoji: "🫐" },
+    catnip:     { name: "Catnip",       key: "1", cost: 5,  growMs: 5000,  sell: 15,  plantColor: "#a3d977", flower: "#c98bff", emoji: "🌿" },
+    fishberry:  { name: "Fishberries",  key: "2", cost: 15, growMs: 12000, sell: 45,  plantColor: "#79b0e8", flower: "#ff6f91", emoji: "🫐" },
+    mousemelon: { name: "Mouse-melons", key: "3", cost: 30, growMs: 25000, sell: 100, plantColor: "#86d18f", flower: "#ffb84d", emoji: "🍈" },
   };
   const CROP_KEYS = Object.keys(CROPS);
+  const keyToSeed = { "1": "catnip", "2": "fishberry", "3": "mousemelon" };
 
-  // Fish that can be caught
   const FISH_TYPES = [
-    { name: "Minnow",    value: 12, color: "#9fbf8f", weight: 50 },
-    { name: "Bass",      value: 28, color: "#6f8f5f", weight: 32 },
-    { name: "Golden Koi", value: 70, color: "#f4c145", weight: 18 },
+    { name: "Minnow",     value: 12, weight: 50 },
+    { name: "Bass",       value: 28, weight: 32 },
+    { name: "Golden Koi", value: 70, weight: 18 },
   ];
 
-  // ---------- Game state ----------
+  // ---------- State ----------
   const state = {
-    mode: "play",          // "play" | "dialog" | "fishing"
-    gold: 60,
-    day: 1,
-    dayTimer: 0,
-    seeds: { catnip: 6, fishberry: 3 },
-    fishItems: [],          // caught fish {name, value}
-    can: CAN_MAX,           // watering can charges
+    mode: "play",            // play | dialog | fishing
+    gold: 50,
+    day: 1, dayTimer: 0,
     selected: "catnip",
-    tiles: [],
-    crops: [],
-    weeds: [],              // boolean per cell
-    watered: [],            // expiry timestamp per cell
+    fishItems: [],
+    tiles: [], crops: [], wet: [], weeds: [],
   };
 
-  // ---------- NPC villagers ----------
-  // role handlers are attached after helpers are defined
   const NPCS = [
-    { id: "barkley", name: "Barkley the Merchant", emoji: "🐶", color: "#c98b52", r: 2, c: 8,
-      line: "Woof! Reel in any fish? I'll buy 'em fresh." },
-    { id: "hazel", name: "Hazel the Seed Seller", emoji: "🐰", color: "#e8d8c0", r: 2, c: 11,
-      line: "Fresh seeds, hippity-hop! What'll it be?" },
-    { id: "rocky", name: "Rocky the Forager", emoji: "🦝", color: "#8a8f99", r: 2, c: 14,
-      line: "Psst... trade me some fish for rare goodies?" },
+    { id: "barkley", name: "Barkley the Merchant",  emoji: "🐶", color: "#c98b52", r: 2, c: 8,  line: "Woof! Caught any fish? I'll buy 'em fresh." },
+    { id: "hazel",   name: "Hazel the Gardener",    emoji: "🐰", color: "#e8d8c0", r: 2, c: 11, line: "Hippity-hop! Need a hand watering the whole farm?" },
+    { id: "rocky",   name: "Rocky the Forager",     emoji: "🦝", color: "#8a8f99", r: 2, c: 14, line: "Psst... trade your fish for shiny gold?" },
   ];
   const npcAt = (r, c) => NPCS.find(n => n.r === r && n.c === c);
 
-  // ---------- World ----------
   function buildWorld() {
     for (let r = 0; r < ROWS; r++) {
-      state.tiles[r] = [];
-      state.crops[r] = [];
-      state.weeds[r] = [];
-      state.watered[r] = [];
+      state.tiles[r] = []; state.crops[r] = []; state.wet[r] = []; state.weeds[r] = [];
       for (let c = 0; c < COLS; c++) {
-        state.tiles[r][c] = T.GRASS;
-        state.crops[r][c] = null;
-        state.weeds[r][c] = false;
-        state.watered[r][c] = 0;
+        state.tiles[r][c] = T.GRASS; state.crops[r][c] = null;
+        state.wet[r][c] = false; state.weeds[r][c] = false;
       }
     }
-    // Village path strip along the top for the animal town
     for (let c = 6; c <= 15; c++) { state.tiles[1][c] = T.PATH; state.tiles[2][c] = T.PATH; state.tiles[3][c] = T.PATH; }
-    // Big fishing pond, bottom-right
-    const pond = [
-      [11,15],[11,16],[11,17],[11,18],
-      [12,15],[12,16],[12,17],[12,18],[12,19],
-      [13,15],[13,16],[13,17],[13,18],[13,19],
-      [14,16],[14,17],[14,18],[14,19],
-    ];
-    pond.forEach(([r,c]) => { if (state.tiles[r] && state.tiles[r][c] !== undefined) state.tiles[r][c] = T.WATER; });
+    [[11,15],[11,16],[11,17],[11,18],[12,15],[12,16],[12,17],[12,18],[12,19],
+     [13,15],[13,16],[13,17],[13,18],[13,19],[14,16],[14,17],[14,18],[14,19]]
+      .forEach(([r,c]) => { if (state.tiles[r] && state.tiles[r][c] !== undefined) state.tiles[r][c] = T.WATER; });
   }
 
-  // ---------- Player (the cat) ----------
-  const cat = {
-    x: 5 * TILE, y: 7 * TILE, w: TILE, h: TILE,
-    speed: 2.4, dir: "down", moving: false, animTime: 0,
-  };
-  function catCell() {
-    return { c: Math.floor((cat.x + cat.w / 2) / TILE), r: Math.floor((cat.y + cat.h / 2) / TILE) };
-  }
+  // ---------- Cat ----------
+  const cat = { x: 5 * TILE, y: 7 * TILE, w: TILE, h: TILE, speed: 2.4, dir: "down", moving: false, animTime: 0 };
+  const catCell = () => ({ c: Math.floor((cat.x + cat.w / 2) / TILE), r: Math.floor((cat.y + cat.h / 2) / TILE) });
   const inBounds = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS;
 
   // ---------- Input ----------
@@ -305,47 +195,50 @@
   window.addEventListener("keyup", (e) => { keys[e.key.toLowerCase()] = false; });
 
   function handlePress(k) {
-    if (state.mode === "fishing") { fishingInput(k); return; }
-    if (state.mode === "dialog") { dialogInput(k); return; }
-    // play mode
+    if (state.mode === "fishing") return fishingInput(k);
+    if (state.mode === "dialog") return dialogInput(k);
     if (k === "f") tillTile();
     else if (k === "g") plantSeed();
+    else if (k === "r") waterTile();
     else if (k === "e") harvest();
-    else if (k === "c") waterTile();
     else if (k === "h") hoeWeeds();
-    else if (k === "r") refillCan();
-    else if (k === "1") selectSeed("catnip");
-    else if (k === "2") selectSeed("fishberry");
+    else if (keyToSeed[k]) selectSeed(keyToSeed[k]);
     else if (k === " " || k === "enter") interact();
   }
 
-  // ---------- Farming actions ----------
+  // ---------- Farming ----------
   function tillTile() {
     const { r, c } = catCell();
-    if (!inBounds(r, c)) return;
-    if (npcAt(r, c)) return;
+    if (!inBounds(r, c) || npcAt(r, c)) return;
     if (state.tiles[r][c] === T.GRASS || state.tiles[r][c] === T.PATH) {
-      state.tiles[r][c] = T.SOIL;
-      showMessage("🪓 Tilled the soil!");
+      state.tiles[r][c] = T.SOIL; state.wet[r][c] = false;
+      showMessage("🪓 Tilled into dry soil!");
     } else if (state.tiles[r][c] === T.WATER) {
-      showMessage("💧 That's water — try fishing here (Space).");
-    } else {
-      showMessage("Already tilled here.");
-    }
+      showMessage("💧 That's water — press Space to fish.");
+    } else showMessage("Already soil here.");
   }
 
   function plantSeed() {
     const { r, c } = catCell();
     if (!inBounds(r, c)) return;
-    if (state.tiles[r][c] !== T.SOIL) { showMessage("🌱 Need tilled soil first (press F)."); return; }
-    if (state.weeds[r][c]) { showMessage("🌿 Clear the weeds first (press H)."); return; }
-    if (state.crops[r][c]) { showMessage("Something is already growing here!"); return; }
-    const type = state.selected;
-    if (state.seeds[type] <= 0) { showMessage("Out of " + CROPS[type].name + " seeds! Visit Hazel."); return; }
-    state.seeds[type]--;
-    state.crops[r][c] = { type, growth: 0, grown: false };
+    if (state.tiles[r][c] !== T.SOIL) { showMessage("🌱 Till some soil first (F)."); return; }
+    if (state.weeds[r][c]) { showMessage("🌿 Clear the weeds first (H)."); return; }
+    if (state.crops[r][c]) { showMessage("Something's already planted here!"); return; }
+    const def = CROPS[state.selected];
+    if (state.gold < def.cost) { showMessage(`Not enough gold! ${def.name} costs ${def.cost}g.`); return; }
+    state.gold -= def.cost;
+    state.crops[r][c] = { type: state.selected, stage: 0, progress: 0, grown: false };
     updateHUD();
-    showMessage("🌱 Planted " + CROPS[type].name + "!");
+    showMessage(`🌱 Planted ${def.name} (-${def.cost}g). Water it (R)!`);
+  }
+
+  function waterTile() {
+    const { r, c } = catCell();
+    if (!inBounds(r, c)) return;
+    if (state.tiles[r][c] !== T.SOIL) { showMessage("💧 You can only water soil."); return; }
+    if (state.wet[r][c]) { showMessage("💧 This soil is already wet."); return; }
+    state.wet[r][c] = true;
+    showMessage("💧 Watered! The crop can grow now.");
   }
 
   function harvest() {
@@ -353,54 +246,33 @@
     if (!inBounds(r, c)) return;
     const crop = state.crops[r][c];
     if (!crop) { showMessage("Nothing to harvest here."); return; }
-    if (!crop.grown) { showMessage("Still growing... water it to hurry! 🐱"); return; }
+    if (!crop.grown) { showMessage("Still growing — keep it watered! 🐱"); return; }
     const def = CROPS[crop.type];
     state.gold += def.sell;
-    const bonus = Math.random() < 0.5 ? 1 : 0;
-    state.seeds[crop.type] += bonus;
     state.crops[r][c] = null;
-    state.tiles[r][c] = T.SOIL;
+    state.wet[r][c] = false;            // soil left dry
     updateHUD();
-    showMessage("✨ Harvested " + def.name + " +" + def.sell + "g" + (bonus ? " (+1 seed!)" : ""));
-  }
-
-  function waterTile() {
-    const { r, c } = catCell();
-    if (!inBounds(r, c)) return;
-    if (state.tiles[r][c] !== T.SOIL) { showMessage("💧 Watering can only works on soil."); return; }
-    if (state.can <= 0) { showMessage("💧 Can's empty! Refill at the pond (R)."); return; }
-    state.can--;
-    state.watered[r][c] = performance.now() + WATER_DURATION;
-    updateHUD();
-    showMessage("💧 Watered! Growth boosted.");
+    showMessage(`✨ Harvested ${def.name} and sold it for ${def.sell}g!`);
   }
 
   function hoeWeeds() {
     const { r, c } = catCell();
     if (!inBounds(r, c)) return;
-    if (!state.weeds[r][c]) { showMessage("🪓 No weeds here to clear."); return; }
+    if (!state.weeds[r][c]) { showMessage("🪓 No weeds here."); return; }
     state.weeds[r][c] = false;
-    state.gold += 2; // sell the compost
-    if (Math.random() < 0.25) { state.seeds.catnip++; showMessage("🌿 Cleared weeds! +2g and found a Catnip seed!"); }
-    else showMessage("🌿 Cleared weeds! +2g compost.");
+    state.gold += 2;
     updateHUD();
-  }
-
-  function refillCan() {
-    if (!nearWater()) { showMessage("💧 Stand next to the pond to refill (R)."); return; }
-    if (state.can >= CAN_MAX) { showMessage("💧 Watering can is already full."); return; }
-    state.can = CAN_MAX;
-    updateHUD();
-    showMessage("💧 Refilled the watering can!");
+    showMessage("🌿 Cleared weeds! +2g compost.");
   }
 
   function selectSeed(type) {
     state.selected = type;
     updateHUD();
-    showMessage("Selected " + CROPS[type].name + " " + CROPS[type].emoji);
+    const d = CROPS[type];
+    showMessage(`Selected ${d.emoji} ${d.name} — ${d.cost}g · grows in ${d.growMs / 1000}s · sells ${d.sell}g`);
   }
 
-  // ---------- Interaction: NPC talk or fishing ----------
+  // ---------- Interaction ----------
   function nearbyNPC() {
     const { r, c } = catCell();
     let best = null, bestD = 99;
@@ -412,58 +284,46 @@
   }
   function nearWater() {
     const { r, c } = catCell();
-    for (let dr = -1; dr <= 1; dr++)
-      for (let dc = -1; dc <= 1; dc++) {
-        const nr = r + dr, nc = c + dc;
-        if (inBounds(nr, nc) && state.tiles[nr][nc] === T.WATER) return true;
-      }
+    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+      const nr = r + dr, nc = c + dc;
+      if (inBounds(nr, nc) && state.tiles[nr][nc] === T.WATER) return true;
+    }
     return false;
   }
   function interact() {
     const npc = nearbyNPC();
-    if (npc) { openDialog(npc); return; }
-    if (nearWater()) { startFishing(); return; }
+    if (npc) return openDialog(npc);
+    if (nearWater()) return startFishing();
     showMessage("Nothing to interact with here.");
   }
 
-  // ---------- NPC trading dialog ----------
+  // ---------- Village trading ----------
   const dialogEl = document.getElementById("dialog");
   let dialogOptions = [];
-
   function tradeOptions(npc) {
-    if (npc.id === "barkley") {
-      const total = state.fishItems.reduce((s, f) => s + f.value, 0);
-      return [
-        { label: `Sell all fish (${state.fishItems.length}) for ${total}g`, enabled: state.fishItems.length > 0,
-          run: () => { state.gold += total; state.fishItems = []; showMessage(`🐶 Sold fish for ${total}g!`); } },
-        { label: `Sell 1 fish (${state.fishItems[0] ? state.fishItems[0].value : 0}g)`, enabled: state.fishItems.length > 0,
-          run: () => { const f = state.fishItems.shift(); state.gold += f.value; showMessage(`🐶 Sold a ${f.name} for ${f.value}g!`); } },
-      ];
-    }
-    if (npc.id === "hazel") {
-      return [
-        { label: "Buy 3 Catnip seeds — 15g", enabled: state.gold >= 15,
-          run: () => { state.gold -= 15; state.seeds.catnip += 3; showMessage("🐰 Bought 3 Catnip seeds!"); } },
-        { label: "Buy 2 Fishberry seeds — 24g", enabled: state.gold >= 24,
-          run: () => { state.gold -= 24; state.seeds.fishberry += 2; showMessage("🐰 Bought 2 Fishberry seeds!"); } },
-      ];
-    }
-    if (npc.id === "rocky") {
-      return [
-        { label: "Trade 2 fish → 1 Fishberry seed + 5g", enabled: state.fishItems.length >= 2,
-          run: () => { state.fishItems.splice(0, 2); state.seeds.fishberry += 1; state.gold += 5;
-                       showMessage("🦝 Bartered 2 fish for a Fishberry seed + 5g!"); } },
-        { label: "Trade 5 fish → 40g jackpot", enabled: state.fishItems.length >= 5,
-          run: () => { state.fishItems.splice(0, 5); state.gold += 40; showMessage("🦝 Jackpot! Traded 5 fish for 40g!"); } },
-      ];
-    }
+    const total = state.fishItems.reduce((s, f) => s + f.value, 0);
+    if (npc.id === "barkley") return [
+      { label: `Sell all fish (${state.fishItems.length}) for ${total}g`, enabled: state.fishItems.length > 0,
+        run: () => { state.gold += total; state.fishItems = []; showMessage(`🐶 Sold fish for ${total}g!`); } },
+      { label: `Sell 1 fish (${state.fishItems[0] ? state.fishItems[0].value : 0}g)`, enabled: state.fishItems.length > 0,
+        run: () => { const f = state.fishItems.shift(); state.gold += f.value; showMessage(`🐶 Sold a ${f.name} for ${f.value}g!`); } },
+    ];
+    if (npc.id === "hazel") return [
+      { label: "Rain Dance — water ALL crops for 12g", enabled: state.gold >= 12,
+        run: () => { state.gold -= 12; let n = 0;
+          for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
+            if (state.tiles[r][c] === T.SOIL && !state.wet[r][c]) { state.wet[r][c] = true; n++; }
+          showMessage(`🐰 Rain Dance! Watered ${n} soil tiles.`); } },
+    ];
+    if (npc.id === "rocky") return [
+      { label: "Trade 3 fish → 35g", enabled: state.fishItems.length >= 3,
+        run: () => { state.fishItems.splice(0, 3); state.gold += 35; showMessage("🦝 Traded 3 fish for 35g!"); } },
+      { label: "Trade 6 fish → 80g jackpot", enabled: state.fishItems.length >= 6,
+        run: () => { state.fishItems.splice(0, 6); state.gold += 80; showMessage("🦝 Jackpot! 6 fish for 80g!"); } },
+    ];
     return [];
   }
-
-  function openDialog(npc) {
-    state.mode = "dialog";
-    renderDialog(npc);
-  }
+  function openDialog(npc) { state.mode = "dialog"; renderDialog(npc); }
   function renderDialog(npc) {
     dialogOptions = tradeOptions(npc);
     let html = `<div class="name">${npc.emoji} ${npc.name}</div><div class="line">"${npc.line}"</div>`;
@@ -474,73 +334,47 @@
     dialogEl.innerHTML = html;
     dialogEl.classList.add("show");
     dialogEl.dataset.npc = npc.id;
-    // mouse support
     dialogEl.querySelectorAll(".opt").forEach(el => {
-      el.onclick = () => {
-        if (el.dataset.close) { closeDialog(); return; }
-        const i = +el.dataset.i;
-        runOption(i, npc);
-      };
+      el.onclick = () => { if (el.dataset.close) closeDialog(); else runOption(+el.dataset.i, npc); };
     });
   }
   function runOption(i, npc) {
     const o = dialogOptions[i];
     if (!o || !o.enabled) { showMessage("Can't do that right now."); return; }
-    o.run();
-    updateHUD();
-    renderDialog(npc); // refresh counts/prices
+    o.run(); updateHUD(); renderDialog(npc);
   }
   function dialogInput(k) {
-    if (k === "escape" || k === " " ) { closeDialog(); return; }
+    if (k === "escape" || k === " ") return closeDialog();
     const npc = NPCS.find(n => n.id === dialogEl.dataset.npc);
-    if (!npc) { closeDialog(); return; }
     const idx = parseInt(k, 10);
-    if (!isNaN(idx) && idx >= 1) runOption(idx - 1, npc);
+    if (npc && !isNaN(idx) && idx >= 1) runOption(idx - 1, npc);
   }
-  function closeDialog() {
-    dialogEl.classList.remove("show");
-    state.mode = "play";
-  }
+  function closeDialog() { dialogEl.classList.remove("show"); state.mode = "play"; }
 
   // ---------- Fishing minigame ----------
   const fishing = { phase: "wait", biteAt: 0, timer: 0, cursor: 0, dir: 1, zone: 0.5, zoneW: 0.18, caught: null };
   function startFishing() {
-    state.mode = "fishing";
-    fishing.phase = "wait";
-    fishing.timer = 0;
-    fishing.biteAt = 800 + Math.random() * 1800;
-    fishing.caught = null;
-    cat.dir = "down";
+    state.mode = "fishing"; fishing.phase = "wait"; fishing.timer = 0;
+    fishing.biteAt = 800 + Math.random() * 1800; fishing.caught = null;
     showMessage("🎣 Cast your line... wait for a bite!");
   }
   function fishingInput(k) {
     if (k === "escape") { state.mode = "play"; return; }
     if (k !== " " && k !== "enter") return;
-    if (fishing.phase === "wait") {
-      // pressing too early scares the fish
-      fishing.phase = "done";
-      fishing.caught = null;
-      showMessage("🎣 Too early — it got away!");
-    } else if (fishing.phase === "active") {
+    if (fishing.phase === "wait") { fishing.phase = "done"; fishing.caught = null; showMessage("🎣 Too early — it got away!"); }
+    else if (fishing.phase === "active") {
       const dist = Math.abs(fishing.cursor - fishing.zone);
       if (dist <= fishing.zoneW / 2) {
-        // closer to center = better fish
         const quality = 1 - dist / (fishing.zoneW / 2);
         fishing.caught = pickFish(quality);
         state.fishItems.push({ name: fishing.caught.name, value: fishing.caught.value });
         updateHUD();
-        showMessage(`🎣 Caught a ${fishing.caught.name}! (+1 fish, worth ${fishing.caught.value}g)`);
-      } else {
-        fishing.caught = null;
-        showMessage("🎣 Missed! The fish slipped away.");
-      }
+        showMessage(`🎣 Caught a ${fishing.caught.name}! Worth ${fishing.caught.value}g.`);
+      } else { fishing.caught = null; showMessage("🎣 Missed! It slipped away."); }
       fishing.phase = "result";
-    } else if (fishing.phase === "result" || fishing.phase === "done") {
-      state.mode = "play";
-    }
+    } else { state.mode = "play"; }
   }
   function pickFish(quality) {
-    // higher quality biases toward rarer fish
     const roll = Math.random() * (quality > 0.7 ? 60 : 100);
     let acc = 0;
     const order = quality > 0.6 ? [...FISH_TYPES].reverse() : FISH_TYPES;
@@ -558,263 +392,177 @@
       if (fishing.timer >= 4500) { fishing.phase = "done"; fishing.caught = null; showMessage("🎣 The fish got bored and left..."); }
     }
   }
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
   function renderFishing() {
-    ctx.fillStyle = "rgba(20,30,40,0.55)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(20,30,40,0.55)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
     const bx = 120, by = 200, bw = 400, bh = 80;
-    // panel
-    ctx.fillStyle = "#fff7e6";
-    roundRect(bx, by, bw, bh + 60, 12); ctx.fill();
+    ctx.fillStyle = "#fff7e6"; roundRect(bx, by, bw, bh + 60, 12); ctx.fill();
     ctx.strokeStyle = "#3a2a20"; ctx.lineWidth = 4; roundRect(bx, by, bw, bh + 60, 12); ctx.stroke();
-
-    ctx.fillStyle = "#5a3a2e";
-    ctx.font = "bold 18px Segoe UI, sans-serif";
-    ctx.textAlign = "center";
-
+    ctx.fillStyle = "#5a3a2e"; ctx.font = "bold 18px Segoe UI, sans-serif"; ctx.textAlign = "center";
     if (fishing.phase === "wait") {
       ctx.fillText("🎣 Waiting for a bite...", canvas.width / 2, by + 40);
       ctx.font = "13px Segoe UI, sans-serif";
       ctx.fillText("Don't press too early!  (Esc to reel in)", canvas.width / 2, by + 66);
     } else if (fishing.phase === "active") {
       ctx.fillText("Press SPACE in the green zone!", canvas.width / 2, by + 30);
-      // bar
       const barX = bx + 30, barY = by + 55, barW = bw - 60, barH = 22;
       ctx.fillStyle = "#cdbfa6"; ctx.fillRect(barX, barY, barW, barH);
-      // green zone
-      ctx.fillStyle = "#6fcf6a";
-      ctx.fillRect(barX + (fishing.zone - fishing.zoneW / 2) * barW, barY, fishing.zoneW * barW, barH);
-      // cursor
-      ctx.fillStyle = "#b5532a";
-      ctx.fillRect(barX + fishing.cursor * barW - 3, barY - 6, 6, barH + 12);
+      ctx.fillStyle = "#6fcf6a"; ctx.fillRect(barX + (fishing.zone - fishing.zoneW / 2) * barW, barY, fishing.zoneW * barW, barH);
+      ctx.fillStyle = "#b5532a"; ctx.fillRect(barX + fishing.cursor * barW - 3, barY - 6, 6, barH + 12);
       ctx.strokeStyle = "#3a2a20"; ctx.lineWidth = 2; ctx.strokeRect(barX, barY, barW, barH);
     } else {
-      // result / done
       if (fishing.caught) {
         ctx.fillText("✨ You caught a " + fishing.caught.name + "!", canvas.width / 2, by + 36);
         ctx.font = "14px Segoe UI, sans-serif";
-        ctx.fillText("Worth " + fishing.caught.value + "g — sell it to Barkley in the village.", canvas.width / 2, by + 64);
-      } else {
-        ctx.fillText("No catch this time...", canvas.width / 2, by + 40);
-      }
+        ctx.fillText("Worth " + fishing.caught.value + "g — sell it to Barkley.", canvas.width / 2, by + 64);
+      } else ctx.fillText("No catch this time...", canvas.width / 2, by + 40);
       ctx.font = "13px Segoe UI, sans-serif";
       ctx.fillText("Press Space to continue", canvas.width / 2, by + 96);
     }
-    ctx.textAlign = "left";
-    ctx.lineWidth = 1;
-  }
-  function roundRect(x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
+    ctx.textAlign = "left"; ctx.lineWidth = 1;
   }
 
-  // ---------- Update (play mode world) ----------
+  // ---------- Update ----------
   let weedTimer = 0;
   function update(dt) {
-    // Movement
     let dx = 0, dy = 0;
     if (keys["w"] || keys["arrowup"]) { dy -= 1; cat.dir = "up"; }
     if (keys["s"] || keys["arrowdown"]) { dy += 1; cat.dir = "down"; }
     if (keys["a"] || keys["arrowleft"]) { dx -= 1; cat.dir = "left"; }
     if (keys["d"] || keys["arrowright"]) { dx += 1; cat.dir = "right"; }
-
     cat.moving = dx !== 0 || dy !== 0;
     if (cat.moving) {
-      const len = Math.hypot(dx, dy) || 1;
-      const step = cat.speed * (dt / 16.67);
-      tryMove((dx / len) * step, 0);
-      tryMove(0, (dy / len) * step);
+      const len = Math.hypot(dx, dy) || 1, step = cat.speed * (dt / 16.67);
+      tryMove((dx / len) * step, 0); tryMove(0, (dy / len) * step);
       cat.animTime += dt;
     }
 
-    // Crop growth (watering boosts, weeds pause)
-    const now = performance.now();
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
-        const crop = state.crops[r][c];
-        if (crop && !crop.grown) {
-          if (state.weeds[r][c]) continue; // weeds choke growth
-          const boosted = state.watered[r][c] > now;
-          crop.growth += dt * (boosted ? WATER_BOOST : 1);
-          if (crop.growth >= CROPS[crop.type].growMs) crop.grown = true;
-        }
+    // Growth: only while soil is wet. Each completed stage dries the soil.
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      const crop = state.crops[r][c];
+      if (!crop || crop.grown) continue;
+      if (state.weeds[r][c]) continue;       // weeds choke growth
+      if (!state.wet[r][c]) continue;        // needs watering to advance
+      const stageMs = CROPS[crop.type].growMs / STAGES;
+      crop.progress += dt;
+      if (crop.progress >= stageMs) {
+        crop.progress = 0;
+        crop.stage++;
+        state.wet[r][c] = false;             // soil dries after the stage
+        if (crop.stage >= STAGES) crop.grown = true;
       }
     }
 
-    // Weeds slowly sprout on soil & grass
     weedTimer += dt;
-    if (weedTimer >= 3500) {
-      weedTimer = 0;
-      spawnWeed();
-    }
+    if (weedTimer >= 4500) { weedTimer = 0; spawnWeed(); }
 
-    // Day cycle (cosmetic)
     state.dayTimer += dt;
     if (state.dayTimer >= 30000) { state.dayTimer = 0; state.day++; updateHUD(); }
   }
-
   function tryMove(mx, my) {
     const nx = Math.max(0, Math.min(canvas.width - cat.w, cat.x + mx));
     const ny = Math.max(0, Math.min(canvas.height - cat.h, cat.y + my));
-    const cc = Math.floor((nx + cat.w / 2) / TILE);
-    const cr = Math.floor((ny + cat.h / 2) / TILE);
-    if (npcAt(cr, cc)) return; // can't walk through villagers
+    const cc = Math.floor((nx + cat.w / 2) / TILE), cr = Math.floor((ny + cat.h / 2) / TILE);
+    if (npcAt(cr, cc)) return;
     cat.x = nx; cat.y = ny;
   }
-
   function spawnWeed() {
     let count = 0;
     for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (state.weeds[r][c]) count++;
-    if (count >= 14) return;
-    for (let tries = 0; tries < 12; tries++) {
-      const r = Math.floor(Math.random() * ROWS);
-      const c = Math.floor(Math.random() * COLS);
-      const t = state.tiles[r][c];
-      if ((t === T.GRASS || t === T.SOIL) && !state.weeds[r][c] && !npcAt(r, c)) {
-        state.weeds[r][c] = true;
-        return;
-      }
+    if (count >= 12) return;
+    for (let t = 0; t < 12; t++) {
+      const r = Math.floor(Math.random() * ROWS), c = Math.floor(Math.random() * COLS), tile = state.tiles[r][c];
+      if ((tile === T.GRASS || tile === T.SOIL) && !state.weeds[r][c] && !state.crops[r][c] && !npcAt(r, c)) { state.weeds[r][c] = true; return; }
     }
   }
 
   // ---------- Rendering ----------
   function drawTile(r, c) {
-    const x = c * TILE, y = r * TILE;
-    const type = state.tiles[r][c];
+    const x = c * TILE, y = r * TILE, type = state.tiles[r][c];
     if (type === T.GRASS) {
-      ctx.fillStyle = (r + c) % 2 === 0 ? "#6abe5e" : "#62b456";
-      ctx.fillRect(x, y, TILE, TILE);
+      ctx.fillStyle = (r + c) % 2 === 0 ? "#6abe5e" : "#62b456"; ctx.fillRect(x, y, TILE, TILE);
       ctx.fillStyle = "rgba(255,255,255,0.10)";
-      ctx.fillRect(x + 6, y + 20, 2, 6);
-      ctx.fillRect(x + 18, y + 10, 2, 6);
-      ctx.fillRect(x + 25, y + 24, 2, 6);
+      ctx.fillRect(x + 6, y + 20, 2, 6); ctx.fillRect(x + 18, y + 10, 2, 6); ctx.fillRect(x + 25, y + 24, 2, 6);
     } else if (type === T.PATH) {
-      ctx.fillStyle = (r + c) % 2 === 0 ? "#d8c190" : "#cfb784";
-      ctx.fillRect(x, y, TILE, TILE);
-      ctx.fillStyle = "rgba(120,90,50,0.18)";
-      ctx.fillRect(x + 4, y + 6, 4, 4);
-      ctx.fillRect(x + 20, y + 18, 5, 4);
+      ctx.fillStyle = (r + c) % 2 === 0 ? "#d8c190" : "#cfb784"; ctx.fillRect(x, y, TILE, TILE);
+      ctx.fillStyle = "rgba(120,90,50,0.18)"; ctx.fillRect(x + 4, y + 6, 4, 4); ctx.fillRect(x + 20, y + 18, 5, 4);
     } else if (type === T.SOIL) {
-      const wet = state.watered[r][c] > performance.now();
-      ctx.fillStyle = wet ? ((r + c) % 2 === 0 ? "#5e3b22" : "#553420") : ((r + c) % 2 === 0 ? "#8a5a36" : "#7e5230");
+      const wet = state.wet[r][c];
+      ctx.fillStyle = wet ? ((r + c) % 2 === 0 ? "#5e3b22" : "#553420") : ((r + c) % 2 === 0 ? "#9a6a44" : "#8e6238");
       ctx.fillRect(x, y, TILE, TILE);
-      ctx.fillStyle = "rgba(0,0,0,0.12)";
-      ctx.fillRect(x, y + 8, TILE, 2);
-      ctx.fillRect(x, y + 20, TILE, 2);
-      ctx.strokeStyle = "rgba(0,0,0,0.18)";
-      ctx.strokeRect(x + 0.5, y + 0.5, TILE - 1, TILE - 1);
-      if (wet) {
-        ctx.fillStyle = "rgba(90,160,210,0.25)";
-        ctx.fillRect(x + 6, y + 6, 4, 4);
-        ctx.fillRect(x + 20, y + 16, 4, 4);
-      }
+      ctx.fillStyle = "rgba(0,0,0,0.12)"; ctx.fillRect(x, y + 8, TILE, 2); ctx.fillRect(x, y + 20, TILE, 2);
+      ctx.strokeStyle = "rgba(0,0,0,0.18)"; ctx.strokeRect(x + 0.5, y + 0.5, TILE - 1, TILE - 1);
+      if (wet) { ctx.fillStyle = "rgba(90,160,210,0.25)"; ctx.fillRect(x + 6, y + 6, 4, 4); ctx.fillRect(x + 20, y + 16, 4, 4); }
     } else if (type === T.WATER) {
-      ctx.fillStyle = "#4aa3d6";
-      ctx.fillRect(x, y, TILE, TILE);
-      const t = performance.now() / 400;
-      ctx.fillStyle = "rgba(255,255,255,0.25)";
-      ctx.fillRect(x + 5, y + 12 + Math.sin(t + c) * 2, 10, 2);
-      ctx.fillRect(x + 18, y + 22 + Math.cos(t + r) * 2, 8, 2);
+      ctx.fillStyle = "#4aa3d6"; ctx.fillRect(x, y, TILE, TILE);
+      const t = performance.now() / 400; ctx.fillStyle = "rgba(255,255,255,0.25)";
+      ctx.fillRect(x + 5, y + 12 + Math.sin(t + c) * 2, 10, 2); ctx.fillRect(x + 18, y + 22 + Math.cos(t + r) * 2, 8, 2);
     }
   }
-
   function drawWeed(r, c) {
     if (!state.weeds[r][c]) return;
     const x = c * TILE, y = r * TILE;
-    ctx.strokeStyle = "#3f6e35";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
+    ctx.strokeStyle = "#3f6e35"; ctx.lineWidth = 2; ctx.beginPath();
     ctx.moveTo(x + 8, y + 26); ctx.lineTo(x + 14, y + 14);
     ctx.moveTo(x + 16, y + 26); ctx.lineTo(x + 12, y + 12);
-    ctx.moveTo(x + 22, y + 26); ctx.lineTo(x + 20, y + 14);
-    ctx.stroke();
-    ctx.fillStyle = "#5a8f3f";
-    ctx.fillRect(x + 11, y + 11, 3, 3);
-    ctx.fillRect(x + 19, y + 13, 3, 3);
+    ctx.moveTo(x + 22, y + 26); ctx.lineTo(x + 20, y + 14); ctx.stroke();
+    ctx.fillStyle = "#5a8f3f"; ctx.fillRect(x + 11, y + 11, 3, 3); ctx.fillRect(x + 19, y + 13, 3, 3);
     ctx.lineWidth = 1;
   }
-
   function drawCrop(r, c) {
     const crop = state.crops[r][c];
     if (!crop) return;
-    const def = CROPS[crop.type];
-    const x = c * TILE, y = r * TILE;
-    const progress = Math.min(1, crop.growth / def.growMs);
+    const def = CROPS[crop.type], x = c * TILE, y = r * TILE;
+    const stageMs = def.growMs / STAGES;
+    const overall = Math.min(1, (crop.stage + crop.progress / stageMs) / STAGES);
     if (!crop.grown) {
-      const h = 4 + progress * 16;
+      const h = 4 + overall * 18;
       ctx.fillStyle = def.plantColor;
       ctx.fillRect(x + TILE / 2 - 2, y + TILE - 6 - h, 4, h);
-      ctx.fillStyle = def.seedColor;
       ctx.fillRect(x + TILE / 2 - 6, y + TILE - 8 - h * 0.6, 5, 3);
       ctx.fillRect(x + TILE / 2 + 1, y + TILE - 12 - h * 0.6, 5, 3);
+      // status pip above crop: blue droplet if watered, amber "!" if it needs water
+      if (state.wet[r][c]) {
+        ctx.fillStyle = "#4aa3d6";
+        ctx.beginPath(); ctx.arc(x + TILE - 8, y + 7, 3, 0, Math.PI * 2); ctx.fill();
+      } else {
+        ctx.fillStyle = "#e6a23c";
+        ctx.fillRect(x + TILE - 9, y + 4, 2, 5); ctx.fillRect(x + TILE - 9, y + 11, 2, 2);
+      }
     } else {
       const bob = Math.sin(performance.now() / 300 + (r + c)) * 2;
-      ctx.fillStyle = def.plantColor;
-      ctx.fillRect(x + TILE / 2 - 2, y + 10, 4, 16);
-      ctx.fillStyle = def.flower;
-      ctx.beginPath(); ctx.arc(x + TILE / 2, y + 9 + bob, 7, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#fff4b8";
-      ctx.beginPath(); ctx.arc(x + TILE / 2, y + 9 + bob, 3, 0, Math.PI * 2); ctx.fill();
-      if (Math.sin(performance.now() / 200 + r + c) > 0.6) {
-        ctx.fillStyle = "#fffbe0";
-        ctx.fillRect(x + TILE - 9, y + 3, 3, 3);
-      }
+      ctx.fillStyle = def.plantColor; ctx.fillRect(x + TILE / 2 - 2, y + 10, 4, 16);
+      ctx.fillStyle = def.flower; ctx.beginPath(); ctx.arc(x + TILE / 2, y + 9 + bob, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#fff4b8"; ctx.beginPath(); ctx.arc(x + TILE / 2, y + 9 + bob, 3, 0, Math.PI * 2); ctx.fill();
+      if (Math.sin(performance.now() / 200 + r + c) > 0.6) { ctx.fillStyle = "#fffbe0"; ctx.fillRect(x + TILE - 9, y + 3, 3, 3); }
     }
   }
-
   function drawNPC(n) {
     const x = n.c * TILE, y = n.r * TILE;
-    // shadow
-    ctx.fillStyle = "rgba(0,0,0,0.2)";
-    ctx.beginPath(); ctx.ellipse(x + 16, y + 30, 10, 4, 0, 0, Math.PI * 2); ctx.fill();
-    // body
-    ctx.fillStyle = n.color;
-    ctx.fillRect(x + 8, y + 12, 16, 16);
-    // head
-    ctx.fillRect(x + 9, y + 4, 14, 12);
-    // ears
+    ctx.fillStyle = "rgba(0,0,0,0.2)"; ctx.beginPath(); ctx.ellipse(x + 16, y + 30, 10, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = n.color; ctx.fillRect(x + 8, y + 12, 16, 16); ctx.fillRect(x + 9, y + 4, 14, 12);
     ctx.beginPath(); ctx.moveTo(x + 9, y + 6); ctx.lineTo(x + 8, y); ctx.lineTo(x + 14, y + 5); ctx.fill();
     ctx.beginPath(); ctx.moveTo(x + 23, y + 6); ctx.lineTo(x + 24, y); ctx.lineTo(x + 18, y + 5); ctx.fill();
-    // eyes
-    ctx.fillStyle = "#2c2018";
-    ctx.fillRect(x + 12, y + 8, 2, 3);
-    ctx.fillRect(x + 18, y + 8, 2, 3);
-    // emoji badge above head
-    ctx.font = "16px serif";
-    ctx.textAlign = "center";
-    ctx.fillText(n.emoji, x + 16, y - 4);
-    ctx.textAlign = "left";
+    ctx.fillStyle = "#2c2018"; ctx.fillRect(x + 12, y + 8, 2, 3); ctx.fillRect(x + 18, y + 8, 2, 3);
+    ctx.font = "16px serif"; ctx.textAlign = "center"; ctx.fillText(n.emoji, x + 16, y - 4); ctx.textAlign = "left";
   }
-
   function drawCat() {
     const x = Math.round(cat.x), y = Math.round(cat.y);
-    const step = cat.moving ? Math.floor(cat.animTime / 120) % 2 : 0;
-    const legY = step === 0 ? 0 : 1;
-    ctx.fillStyle = "rgba(0,0,0,0.20)";
-    ctx.beginPath(); ctx.ellipse(x + 16, y + 30, 11, 4, 0, 0, Math.PI * 2); ctx.fill();
-
+    const step = cat.moving ? Math.floor(cat.animTime / 120) % 2 : 0, legY = step === 0 ? 0 : 1;
+    ctx.fillStyle = "rgba(0,0,0,0.20)"; ctx.beginPath(); ctx.ellipse(x + 16, y + 30, 11, 4, 0, 0, Math.PI * 2); ctx.fill();
     const body = "#f4a64f", dark = "#d97f2c", belly = "#ffe0b8";
     ctx.fillStyle = body;
     const tailWag = Math.sin(performance.now() / 250) * 4;
-    ctx.fillRect(x + 24, y + 16 + (cat.dir === "up" ? 0 : 2), 6, 4);
-    ctx.fillRect(x + 27, y + 12 + tailWag * 0.3, 4, 8);
-    ctx.fillStyle = dark;
-    ctx.fillRect(x + 9, y + 26 + legY, 4, 5);
-    ctx.fillRect(x + 19, y + 26 - legY, 4, 5);
-    ctx.fillStyle = body;
-    ctx.fillRect(x + 8, y + 14, 16, 14);
-    ctx.fillStyle = belly;
-    ctx.fillRect(x + 12, y + 20, 8, 7);
-    ctx.fillStyle = dark;
-    ctx.fillRect(x + 10, y + 16, 12, 2);
-    ctx.fillRect(x + 10, y + 22, 3, 2);
-    ctx.fillRect(x + 21, y + 22, 2, 2);
-    ctx.fillStyle = body;
-    ctx.fillRect(x + 9, y + 4, 14, 12);
+    ctx.fillRect(x + 24, y + 16 + (cat.dir === "up" ? 0 : 2), 6, 4); ctx.fillRect(x + 27, y + 12 + tailWag * 0.3, 4, 8);
+    ctx.fillStyle = dark; ctx.fillRect(x + 9, y + 26 + legY, 4, 5); ctx.fillRect(x + 19, y + 26 - legY, 4, 5);
+    ctx.fillStyle = body; ctx.fillRect(x + 8, y + 14, 16, 14);
+    ctx.fillStyle = belly; ctx.fillRect(x + 12, y + 20, 8, 7);
+    ctx.fillStyle = dark; ctx.fillRect(x + 10, y + 16, 12, 2); ctx.fillRect(x + 10, y + 22, 3, 2); ctx.fillRect(x + 21, y + 22, 2, 2);
+    ctx.fillStyle = body; ctx.fillRect(x + 9, y + 4, 14, 12);
     ctx.beginPath(); ctx.moveTo(x + 9, y + 6); ctx.lineTo(x + 9, y - 1); ctx.lineTo(x + 14, y + 5); ctx.fill();
     ctx.beginPath(); ctx.moveTo(x + 23, y + 6); ctx.lineTo(x + 23, y - 1); ctx.lineTo(x + 18, y + 5); ctx.fill();
     ctx.fillStyle = "#ffc0cb";
@@ -825,40 +573,25 @@
       let ex1 = x + 12, ex2 = x + 19;
       if (cat.dir === "left") { ex1 = x + 11; ex2 = x + 16; }
       if (cat.dir === "right") { ex1 = x + 15; ex2 = x + 20; }
-      ctx.fillRect(ex1, y + 8, 2, 3);
-      ctx.fillRect(ex2, y + 8, 2, 3);
-      ctx.fillStyle = "#ff9aa2";
-      ctx.fillRect(x + 15, y + 11, 2, 2);
-      ctx.strokeStyle = "rgba(255,255,255,0.7)";
-      ctx.beginPath();
-      ctx.moveTo(x + 8, y + 11); ctx.lineTo(x + 13, y + 12);
-      ctx.moveTo(x + 24, y + 11); ctx.lineTo(x + 19, y + 12);
-      ctx.stroke();
-    } else {
-      ctx.fillStyle = dark;
-      ctx.fillRect(x + 11, y + 6, 10, 2);
-    }
+      ctx.fillRect(ex1, y + 8, 2, 3); ctx.fillRect(ex2, y + 8, 2, 3);
+      ctx.fillStyle = "#ff9aa2"; ctx.fillRect(x + 15, y + 11, 2, 2);
+      ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.beginPath();
+      ctx.moveTo(x + 8, y + 11); ctx.lineTo(x + 13, y + 12); ctx.moveTo(x + 24, y + 11); ctx.lineTo(x + 19, y + 12); ctx.stroke();
+    } else { ctx.fillStyle = dark; ctx.fillRect(x + 11, y + 6, 10, 2); }
   }
-
+  function drawPrompt(cx, cy, text) {
+    ctx.font = "bold 11px Segoe UI, sans-serif"; ctx.textAlign = "center";
+    const w = ctx.measureText(text).width + 14;
+    ctx.fillStyle = "rgba(58,42,32,0.92)"; roundRect(cx - w / 2, cy - 14, w, 18, 6); ctx.fill();
+    ctx.fillStyle = "#ffe8c2"; ctx.fillText(text, cx, cy - 1); ctx.textAlign = "left";
+  }
   function render() {
-    ctx.fillStyle = "#6abe5e";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#6abe5e"; ctx.fillRect(0, 0, canvas.width, canvas.height);
     for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) drawTile(r, c);
     for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) { drawCrop(r, c); drawWeed(r, c); }
-
-    // tile highlight under cat
     const { r, c } = catCell();
-    if (inBounds(r, c)) {
-      ctx.strokeStyle = "rgba(255,255,255,0.85)";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(c * TILE + 1, r * TILE + 1, TILE - 2, TILE - 2);
-      ctx.lineWidth = 1;
-    }
-
-    NPCS.forEach(drawNPC);
-    drawCat();
-
-    // interaction prompt
+    if (inBounds(r, c)) { ctx.strokeStyle = "rgba(255,255,255,0.85)"; ctx.lineWidth = 2; ctx.strokeRect(c * TILE + 1, r * TILE + 1, TILE - 2, TILE - 2); ctx.lineWidth = 1; }
+    NPCS.forEach(drawNPC); drawCat();
     if (state.mode === "play") {
       const npc = nearbyNPC();
       if (npc) drawPrompt(npc.c * TILE + 16, npc.r * TILE - 18, "Space: talk");
@@ -866,47 +599,32 @@
     }
   }
 
-  function drawPrompt(cx, cy, text) {
-    ctx.font = "bold 11px Segoe UI, sans-serif";
-    ctx.textAlign = "center";
-    const w = ctx.measureText(text).width + 14;
-    ctx.fillStyle = "rgba(58,42,32,0.92)";
-    roundRect(cx - w / 2, cy - 14, w, 18, 6); ctx.fill();
-    ctx.fillStyle = "#ffe8c2";
-    ctx.fillText(text, cx, cy - 1);
-    ctx.textAlign = "left";
-  }
-
   // ---------- HUD ----------
   const goldEl = document.getElementById("gold");
   const dayEl = document.getElementById("day");
-  const waterEl = document.getElementById("water");
   const fishEl = document.getElementById("fish");
   const slotsEl = document.getElementById("seed-slots");
-
   function buildSeedSlots() {
+    slotsEl.style.display = "flex";
     slotsEl.innerHTML = "";
     CROP_KEYS.forEach((type) => {
-      const def = CROPS[type];
+      const d = CROPS[type];
       const div = document.createElement("div");
-      div.className = "chip seed-slot";
-      div.dataset.type = type;
-      div.innerHTML =
-        `<div>${def.emoji} ${def.name}</div>` +
-        `<div><span class="count">${state.seeds[type]}</span> seeds <span class="key">${def.key}</span></div>`;
+      div.className = "chip seed-slot"; div.dataset.type = type;
+      div.innerHTML = `<div>${d.emoji} ${d.name}</div>` +
+        `<div class="meta">${d.cost}g · ${d.growMs / 1000}s · +${d.sell}g</div>` +
+        `<div class="key">${d.key}</div>`;
+      div.onclick = () => selectSeed(type);
       slotsEl.appendChild(div);
     });
   }
   function updateHUD() {
     goldEl.textContent = state.gold;
     dayEl.textContent = state.day;
-    waterEl.textContent = state.can;
     fishEl.textContent = state.fishItems.length;
     CROP_KEYS.forEach((type) => {
       const slot = slotsEl.querySelector(`[data-type="${type}"]`);
-      if (!slot) return;
-      slot.querySelector(".count").textContent = state.seeds[type];
-      slot.classList.toggle("active", state.selected === type);
+      if (slot) slot.classList.toggle("active", state.selected === type);
     });
   }
 
@@ -914,17 +632,14 @@
   const msgEl = document.getElementById("message");
   let msgTimer = null;
   function showMessage(text) {
-    msgEl.textContent = text;
-    msgEl.classList.add("show");
-    clearTimeout(msgTimer);
-    msgTimer = setTimeout(() => msgEl.classList.remove("show"), 2000);
+    msgEl.textContent = text; msgEl.classList.add("show");
+    clearTimeout(msgTimer); msgTimer = setTimeout(() => msgEl.classList.remove("show"), 2200);
   }
 
-  // ---------- Main loop ----------
+  // ---------- Loop ----------
   let lastTime = performance.now();
   function loop(now) {
-    const dt = Math.min(50, now - lastTime);
-    lastTime = now;
+    const dt = Math.min(50, now - lastTime); lastTime = now;
     if (state.mode === "play") update(dt);
     else if (state.mode === "fishing") updateFishing(dt);
     render();
@@ -933,10 +648,8 @@
   }
 
   // ---------- Boot ----------
-  buildWorld();
-  buildSeedSlots();
-  updateHUD();
-  showMessage("Welcome! Till soil (F), water crops (C), fish 🎣 & visit the village 🏘️");
+  buildWorld(); buildSeedSlots(); updateHUD();
+  showMessage("Till (F) → Plant (G) → Water (R) → keep watering → Harvest (E)!");
   requestAnimationFrame(loop);
 })();
 </script>
