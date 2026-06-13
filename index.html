@@ -99,7 +99,7 @@
     <canvas id="game" width="640" height="480"></canvas>
     <div id="hud">
       <div class="chip">💰 <span id="gold">0</span> <small>Gold</small></div>
-      <div class="chip">🕐 Day <span id="day">1</span></div>
+      <div class="chip">🕐 Day <span id="day">1</span> <span id="phase">☀️</span></div>
       <div class="chip">🐟 <span id="fish">0</span> <small>fish</small></div>
       <div id="seed-slots"></div>
     </div>
@@ -115,9 +115,9 @@
     <b>Water:</b> <kbd>R</kbd> &nbsp;•&nbsp;
     <b>Harvest:</b> <kbd>E</kbd> &nbsp;•&nbsp;
     <b>Hoe weeds:</b> <kbd>H</kbd> &nbsp;•&nbsp;
-    <b>Interact / Fish / Talk:</b> <kbd>Space</kbd> &nbsp;•&nbsp;
+    <b>Interact / Fish / Talk / Sleep:</b> <kbd>Space</kbd> &nbsp;•&nbsp;
     <b>Close:</b> <kbd>Esc</kbd><br>
-    💧 Crops only grow while the soil is <b>wet</b> — after each growth stage the soil dries out, so keep watering! · 🎣 fish at the pond · 🏘️ trade in the village.
+    💧 Water a crop <b>once</b> and it stays hydrated, growing on its own · 🌙 a day lasts 60s — sleep in your 🛏️ bed (Space) to skip the night, advance the day, and grow every watered crop · 🎣 fish at the pond · 🏘️ trade in the village.
   </div>
 
 <script>
@@ -130,8 +130,9 @@
   const ctx = canvas.getContext("2d");
   ctx.imageSmoothingEnabled = false;
 
-  const T = { GRASS: 0, SOIL: 1, WATER: 2, PATH: 3 };
-  const STAGES = 3;   // growth stages; each needs its own watering
+  const T = { GRASS: 0, SOIL: 1, WATER: 2, PATH: 3, BED: 4 };
+  const STAGES = 3;       // growth stages
+  const DAY_MS = 60000;   // one in-game day lasts 60 seconds
 
   // Seed economy exactly per spec
   const CROPS = {
@@ -177,6 +178,8 @@
     [[11,15],[11,16],[11,17],[11,18],[12,15],[12,16],[12,17],[12,18],[12,19],
      [13,15],[13,16],[13,17],[13,18],[13,19],[14,16],[14,17],[14,18],[14,19]]
       .forEach(([r,c]) => { if (state.tiles[r] && state.tiles[r][c] !== undefined) state.tiles[r][c] = T.WATER; });
+    // Whiskers' cozy bed — sleep here to skip the night
+    state.tiles[11][2] = T.BED;
   }
 
   // ---------- Cat ----------
@@ -210,6 +213,7 @@
   function tillTile() {
     const { r, c } = catCell();
     if (!inBounds(r, c) || npcAt(r, c)) return;
+    if (state.tiles[r][c] === T.BED) { showMessage("🛏️ That's your cozy bed — press Space to sleep."); return; }
     if (state.tiles[r][c] === T.GRASS || state.tiles[r][c] === T.PATH) {
       state.tiles[r][c] = T.SOIL; state.wet[r][c] = false;
       showMessage("🪓 Tilled into dry soil!");
@@ -229,16 +233,16 @@
     state.gold -= def.cost;
     state.crops[r][c] = { type: state.selected, stage: 0, progress: 0, grown: false };
     updateHUD();
-    showMessage(`🌱 Planted ${def.name} (-${def.cost}g). Water it (R)!`);
+    showMessage(`🌱 Planted ${def.name} (-${def.cost}g). Water it once (R)!`);
   }
 
   function waterTile() {
     const { r, c } = catCell();
     if (!inBounds(r, c)) return;
     if (state.tiles[r][c] !== T.SOIL) { showMessage("💧 You can only water soil."); return; }
-    if (state.wet[r][c]) { showMessage("💧 This soil is already wet."); return; }
+    if (state.wet[r][c]) { showMessage("💧 Already watered — it stays hydrated."); return; }
     state.wet[r][c] = true;
-    showMessage("💧 Watered! The crop can grow now.");
+    showMessage("💧 Watered! It'll stay hydrated and grow on its own.");
   }
 
   function harvest() {
@@ -291,6 +295,8 @@
     return false;
   }
   function interact() {
+    const { r, c } = catCell();
+    if (inBounds(r, c) && state.tiles[r][c] === T.BED) return sleep();
     const npc = nearbyNPC();
     if (npc) return openDialog(npc);
     if (nearWater()) return startFishing();
@@ -428,6 +434,7 @@
 
   // ---------- Update ----------
   let weedTimer = 0;
+  let lastPhaseIcon = "☀️";
   function update(dt) {
     let dx = 0, dy = 0;
     if (keys["w"] || keys["arrowup"]) { dy -= 1; cat.dir = "up"; }
@@ -452,7 +459,7 @@
       if (crop.progress >= stageMs) {
         crop.progress = 0;
         crop.stage++;
-        state.wet[r][c] = false;             // soil dries after the stage
+        // stays hydrated — water once and it keeps growing automatically
         if (crop.stage >= STAGES) crop.grown = true;
       }
     }
@@ -460,8 +467,34 @@
     weedTimer += dt;
     if (weedTimer >= 4500) { weedTimer = 0; spawnWeed(); }
 
+    // Day/night cycle: 60s per day
     state.dayTimer += dt;
-    if (state.dayTimer >= 30000) { state.dayTimer = 0; state.day++; updateHUD(); }
+    const ph = phaseFor(state.dayTimer / DAY_MS);
+    if (ph.icon !== lastPhaseIcon) { lastPhaseIcon = ph.icon; phaseEl.textContent = ph.icon; }
+    if (state.dayTimer >= DAY_MS) { state.dayTimer = 0; state.day++; updateHUD(); }
+  }
+  function phaseFor(t) {
+    if (t < 0.5) return { icon: "☀️", name: "Day" };
+    if (t < 0.78) return { icon: "🌅", name: "Evening" };
+    return { icon: "🌙", name: "Night" };
+  }
+  function nightAlpha() {
+    const t = state.dayTimer / DAY_MS;
+    return t <= 0.5 ? 0 : Math.min(0.55, ((t - 0.5) / 0.5) * 0.55);
+  }
+  // Sleep in the cat bed: skip the night, advance the calendar, grow watered crops a stage
+  function sleep() {
+    state.day++;
+    state.dayTimer = 0;            // wake up at morning
+    let advanced = 0, ripened = 0;
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      const crop = state.crops[r][c];
+      if (!crop || crop.grown || !state.wet[r][c]) continue;
+      crop.stage++; crop.progress = 0; advanced++;
+      if (crop.stage >= STAGES) { crop.grown = true; ripened++; }
+    }
+    updateHUD();
+    showMessage(`🛏️ Slept till morning — Day ${state.day}! ${advanced} crop(s) grew${ripened ? `, ${ripened} ready to harvest` : ""}.`);
   }
   function tryMove(mx, my) {
     const nx = Math.max(0, Math.min(canvas.width - cat.w, cat.x + mx));
@@ -501,6 +534,12 @@
       ctx.fillStyle = "#4aa3d6"; ctx.fillRect(x, y, TILE, TILE);
       const t = performance.now() / 400; ctx.fillStyle = "rgba(255,255,255,0.25)";
       ctx.fillRect(x + 5, y + 12 + Math.sin(t + c) * 2, 10, 2); ctx.fillRect(x + 18, y + 22 + Math.cos(t + r) * 2, 8, 2);
+    } else if (type === T.BED) {
+      ctx.fillStyle = (r + c) % 2 === 0 ? "#6abe5e" : "#62b456"; ctx.fillRect(x, y, TILE, TILE);
+      ctx.fillStyle = "#7a4fa3"; roundRect(x + 3, y + 9, TILE - 6, TILE - 13, 5); ctx.fill();   // mattress
+      ctx.fillStyle = "#9b6fc4"; roundRect(x + 5, y + 11, TILE - 10, 7, 3); ctx.fill();          // blanket
+      ctx.fillStyle = "#ffe8c2"; roundRect(x + 5, y + 6, 11, 8, 3); ctx.fill();                   // pillow
+      ctx.fillStyle = "#5a3a2e"; ctx.fillRect(x + 3, y + 22, 3, 4); ctx.fillRect(x + TILE - 6, y + 22, 3, 4); // legs
     }
   }
   function drawWeed(r, c) {
@@ -592,16 +631,23 @@
     const { r, c } = catCell();
     if (inBounds(r, c)) { ctx.strokeStyle = "rgba(255,255,255,0.85)"; ctx.lineWidth = 2; ctx.strokeRect(c * TILE + 1, r * TILE + 1, TILE - 2, TILE - 2); ctx.lineWidth = 1; }
     NPCS.forEach(drawNPC); drawCat();
+    // night overlay tints the world as evening falls
+    const na = nightAlpha();
+    if (na > 0.01) { ctx.fillStyle = `rgba(18,22,64,${na})`; ctx.fillRect(0, 0, canvas.width, canvas.height); }
     if (state.mode === "play") {
-      const npc = nearbyNPC();
-      if (npc) drawPrompt(npc.c * TILE + 16, npc.r * TILE - 18, "Space: talk");
-      else if (nearWater()) drawPrompt(cat.x + 16, cat.y - 16, "Space: fish 🎣");
+      if (inBounds(r, c) && state.tiles[r][c] === T.BED) drawPrompt(cat.x + 16, cat.y - 16, "Space: sleep 🛏️");
+      else {
+        const npc = nearbyNPC();
+        if (npc) drawPrompt(npc.c * TILE + 16, npc.r * TILE - 18, "Space: talk");
+        else if (nearWater()) drawPrompt(cat.x + 16, cat.y - 16, "Space: fish 🎣");
+      }
     }
   }
 
   // ---------- HUD ----------
   const goldEl = document.getElementById("gold");
   const dayEl = document.getElementById("day");
+  const phaseEl = document.getElementById("phase");
   const fishEl = document.getElementById("fish");
   const slotsEl = document.getElementById("seed-slots");
   function buildSeedSlots() {
@@ -649,7 +695,7 @@
 
   // ---------- Boot ----------
   buildWorld(); buildSeedSlots(); updateHUD();
-  showMessage("Till (F) → Plant (G) → Water (R) → keep watering → Harvest (E)!");
+  showMessage("Till (F) → Plant (G) → Water once (R) → Harvest (E). Sleep in your 🛏️ to skip the night!");
   requestAnimationFrame(loop);
 })();
 </script>
