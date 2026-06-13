@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whiskers' Cozy Cat Farm 🐾</title>
+<style>
+  :root {
+    --panel: #fff7e6;
+    --ink: #5a3a2e;
+    --accent: #e8a35c;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #2d4a3e;
+    font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: none;
+    image-rendering: pixelated;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 14px;
+    padding: 16px;
+  }
+  h1 {
+    margin: 0;
+    color: #ffe8c2;
+    font-size: 26px;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 0 #1c2f27;
+  }
+  #game-wrap {
+    position: relative;
+    border: 6px solid #3a2a20;
+    border-radius: 10px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+    background: #6abe5e;
+  }
+  canvas {
+    display: block;
+    image-rendering: pixelated;
+    border-radius: 4px;
+  }
+  /* HUD overlay */
+  #hud {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    pointer-events: none;
+    align-items: stretch;
+  }
+  .chip {
+    background: rgba(255, 247, 230, 0.94);
+    border: 3px solid #3a2a20;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-weight: 700;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.25);
+  }
+  .chip small { font-weight: 600; opacity: 0.7; font-size: 11px; }
+  #seed-slots { gap: 8px; display: flex; }
+  .seed-slot {
+    cursor: default;
+    flex-direction: column;
+    gap: 0;
+    line-height: 1.1;
+    text-align: center;
+  }
+  .seed-slot.active {
+    outline: 3px solid #ffcf5c;
+    background: #fff3d0;
+  }
+  .seed-slot .key {
+    font-size: 10px;
+    background: #3a2a20;
+    color: #ffe8c2;
+    border-radius: 4px;
+    padding: 1px 4px;
+    margin-top: 2px;
+  }
+  #message {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(58, 42, 32, 0.92);
+    color: #ffe8c2;
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.25s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  #message.show { opacity: 1; }
+  #controls {
+    background: var(--panel);
+    border: 4px solid #3a2a20;
+    border-radius: 10px;
+    padding: 12px 18px;
+    max-width: 640px;
+    font-size: 13.5px;
+    line-height: 1.7;
+  }
+  #controls b { color: #b5532a; }
+  kbd {
+    background: #3a2a20;
+    color: #ffe8c2;
+    border-radius: 5px;
+    padding: 1px 7px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 2px 0 #1c130d;
+  }
+</style>
+</head>
+<body>
+  <h1>🐾 Whiskers' Cozy Cat Farm</h1>
+
+  <div id="game-wrap">
+    <canvas id="game" width="640" height="480"></canvas>
+    <div id="hud">
+      <div class="chip">💰 <span id="gold">0</span> <small>Gold</small></div>
+      <div class="chip">🕐 Day <span id="day">1</span></div>
+      <div id="seed-slots" style="display:flex"></div>
+    </div>
+    <div id="message"></div>
+  </div>
+
+  <div id="controls">
+    <b>Move:</b> <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or Arrow keys &nbsp;•&nbsp;
+    <b>Till soil:</b> <kbd>F</kbd> &nbsp;•&nbsp;
+    <b>Plant seed:</b> <kbd>G</kbd> &nbsp;•&nbsp;
+    <b>Harvest:</b> <kbd>E</kbd> &nbsp;•&nbsp;
+    <b>Select seed:</b> <kbd>1</kbd><kbd>2</kbd> &nbsp;•&nbsp;
+    <b>Water:</b> walk onto a pond tile to refill seeds at the shop fountain.<br>
+    Till grass → plant a seed on soil → wait for it to grow → harvest to auto-sell for Gold. 🌱
+  </div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---------- Config ----------
+  const TILE = 32;
+  const COLS = 20;
+  const ROWS = 15;
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+
+  // Tile types
+  const T = { GRASS: 0, SOIL: 1, WATER: 2 };
+
+  // Crop definitions
+  const CROPS = {
+    catnip:     { name: "Catnip",      key: "1", seedColor: "#7bbf54", plantColor: "#a3d977", flower: "#c98bff", growMs: 6000,  sell: 18, emoji: "🌿" },
+    fishberry:  { name: "Fishberries", key: "2", seedColor: "#5b8fd6", plantColor: "#79b0e8", flower: "#ff6f91", growMs: 9000,  sell: 32, emoji: "🫐" },
+  };
+  const CROP_KEYS = Object.keys(CROPS);
+
+  // ---------- Game state ----------
+  const state = {
+    gold: 60,
+    day: 1,
+    dayTimer: 0,
+    seeds: { catnip: 6, fishberry: 3 },
+    selected: "catnip",
+    tiles: [],     // tile type grid
+    crops: [],     // crop objects or null per cell
+  };
+
+  // Build the world
+  function buildWorld() {
+    for (let r = 0; r < ROWS; r++) {
+      state.tiles[r] = [];
+      state.crops[r] = [];
+      for (let c = 0; c < COLS; c++) {
+        state.tiles[r][c] = T.GRASS;
+        state.crops[r][c] = null;
+      }
+    }
+    // A little pond in the bottom-right (water source / "shop fountain")
+    const pond = [[12,16],[12,17],[13,16],[13,17],[13,18],[14,17]];
+    pond.forEach(([r,c]) => { if (state.tiles[r]) state.tiles[r][c] = T.WATER; });
+    // Decorative top-left pond
+    [[1,1],[1,2],[2,1],[2,2]].forEach(([r,c]) => state.tiles[r][c] = T.WATER);
+  }
+
+  // ---------- Player (the cat) ----------
+  const cat = {
+    x: 5 * TILE,
+    y: 7 * TILE,
+    w: TILE,
+    h: TILE,
+    speed: 2.4,
+    dir: "down",
+    moving: false,
+    animTime: 0,
+  };
+
+  function catCell() {
+    return {
+      c: Math.floor((cat.x + cat.w / 2) / TILE),
+      r: Math.floor((cat.y + cat.h / 2) / TILE),
+    };
+  }
+
+  // ---------- Input ----------
+  const keys = {};
+  window.addEventListener("keydown", (e) => {
+    const k = e.key.toLowerCase();
+    if (["arrowup","arrowdown","arrowleft","arrowright"," "].includes(k)) e.preventDefault();
+    if (!keys[k]) handlePress(k);   // single-fire actions
+    keys[k] = true;
+  });
+  window.addEventListener("keyup", (e) => { keys[e.key.toLowerCase()] = false; });
+
+  function handlePress(k) {
+    if (k === "f") tillTile();
+    else if (k === "g") plantSeed();
+    else if (k === "e") harvest();
+    else if (k === "1") selectSeed("catnip");
+    else if (k === "2") selectSeed("fishberry");
+  }
+
+  // ---------- Actions ----------
+  function tillTile() {
+    const { r, c } = catCell();
+    if (!inBounds(r, c)) return;
+    if (state.tiles[r][c] === T.GRASS) {
+      state.tiles[r][c] = T.SOIL;
+      showMessage("🪓 Tilled the soil!");
+    } else if (state.tiles[r][c] === T.WATER) {
+      showMessage("💧 That's water — can't till it.");
+    } else {
+      showMessage("Already tilled here.");
+    }
+  }
+
+  function plantSeed() {
+    const { r, c } = catCell();
+    if (!inBounds(r, c)) return;
+    if (state.tiles[r][c] !== T.SOIL) {
+      showMessage("🌱 You need tilled soil first (press F).");
+      return;
+    }
+    if (state.crops[r][c]) {
+      showMessage("Something is already growing here!");
+      return;
+    }
+    const type = state.selected;
+    if (state.seeds[type] <= 0) {
+      showMessage("Out of " + CROPS[type].name + " seeds!");
+      return;
+    }
+    state.seeds[type]--;
+    state.crops[r][c] = { type, planted: performance.now(), grown: false };
+    updateHUD();
+    showMessage("🌱 Planted " + CROPS[type].name + "!");
+  }
+
+  function harvest() {
+    const { r, c } = catCell();
+    if (!inBounds(r, c)) return;
+    const crop = state.crops[r][c];
+    if (!crop) { showMessage("Nothing to harvest here."); return; }
+    if (!crop.grown) { showMessage("Still growing... be patient! 🐱"); return; }
+    const def = CROPS[crop.type];
+    state.gold += def.sell;
+    // Harvesting also returns one seed sometimes — cozy generosity
+    const bonus = Math.random() < 0.5 ? 1 : 0;
+    state.seeds[crop.type] += bonus;
+    state.crops[r][c] = null;
+    state.tiles[r][c] = T.SOIL; // soil remains, ready to replant
+    updateHUD();
+    showMessage("✨ Harvested " + def.name + " +" + def.sell + "g" + (bonus ? " (+1 seed!)" : ""));
+  }
+
+  function selectSeed(type) {
+    state.selected = type;
+    updateHUD();
+    showMessage("Selected " + CROPS[type].name + " " + CROPS[type].emoji);
+  }
+
+  function inBounds(r, c) { return r >= 0 && r < ROWS && c >= 0 && c < COLS; }
+
+  // Walking onto the pond refills seeds at the "shop" for a little gold
+  let lastRefill = 0;
+  function checkFountain() {
+    const { r, c } = catCell();
+    if (!inBounds(r, c)) return;
+    if (state.tiles[r][c] === T.WATER && performance.now() - lastRefill > 1500) {
+      // Buy a small seed bundle if affordable
+      if (state.gold >= 20) {
+        state.gold -= 20;
+        state.seeds.catnip += 2;
+        state.seeds.fishberry += 1;
+        lastRefill = performance.now();
+        updateHUD();
+        showMessage("🛒 Fountain shop: bought seed bundle for 20g!");
+      } else {
+        if (performance.now() - lastRefill > 1500) {
+          lastRefill = performance.now();
+          showMessage("💧 Fountain shop: need 20g for a seed bundle.");
+        }
+      }
+    }
+  }
+
+  // ---------- Update ----------
+  let lastTime = performance.now();
+  function update(dt) {
+    // Movement
+    let dx = 0, dy = 0;
+    if (keys["w"] || keys["arrowup"]) { dy -= 1; cat.dir = "up"; }
+    if (keys["s"] || keys["arrowdown"]) { dy += 1; cat.dir = "down"; }
+    if (keys["a"] || keys["arrowleft"]) { dx -= 1; cat.dir = "left"; }
+    if (keys["d"] || keys["arrowright"]) { dx += 1; cat.dir = "right"; }
+
+    cat.moving = dx !== 0 || dy !== 0;
+    if (cat.moving) {
+      const len = Math.hypot(dx, dy) || 1;
+      cat.x += (dx / len) * cat.speed * (dt / 16.67);
+      cat.y += (dy / len) * cat.speed * (dt / 16.67);
+      cat.x = Math.max(0, Math.min(canvas.width - cat.w, cat.x));
+      cat.y = Math.max(0, Math.min(canvas.height - cat.h, cat.y));
+      cat.animTime += dt;
+      checkFountain();
+    }
+
+    // Crop growth
+    const now = performance.now();
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const crop = state.crops[r][c];
+        if (crop && !crop.grown) {
+          if (now - crop.planted >= CROPS[crop.type].growMs) crop.grown = true;
+        }
+      }
+    }
+
+    // Day cycle (purely cosmetic counter)
+    state.dayTimer += dt;
+    if (state.dayTimer >= 30000) {
+      state.dayTimer = 0;
+      state.day++;
+      updateHUD();
+    }
+  }
+
+  // ---------- Rendering ----------
+  function drawTile(r, c) {
+    const x = c * TILE, y = r * TILE;
+    const type = state.tiles[r][c];
+    if (type === T.GRASS) {
+      const shade = (r + c) % 2 === 0 ? "#6abe5e" : "#62b456";
+      ctx.fillStyle = shade;
+      ctx.fillRect(x, y, TILE, TILE);
+      // tiny grass blades
+      ctx.fillStyle = "rgba(255,255,255,0.10)";
+      ctx.fillRect(x + 6, y + 20, 2, 6);
+      ctx.fillRect(x + 18, y + 10, 2, 6);
+      ctx.fillRect(x + 25, y + 24, 2, 6);
+    } else if (type === T.SOIL) {
+      ctx.fillStyle = (r + c) % 2 === 0 ? "#8a5a36" : "#7e5230";
+      ctx.fillRect(x, y, TILE, TILE);
+      // furrow lines
+      ctx.fillStyle = "rgba(0,0,0,0.12)";
+      ctx.fillRect(x, y + 8, TILE, 2);
+      ctx.fillRect(x, y + 20, TILE, 2);
+      ctx.strokeStyle = "rgba(0,0,0,0.18)";
+      ctx.strokeRect(x + 0.5, y + 0.5, TILE - 1, TILE - 1);
+    } else if (type === T.WATER) {
+      ctx.fillStyle = "#4aa3d6";
+      ctx.fillRect(x, y, TILE, TILE);
+      // ripples
+      const t = performance.now() / 400;
+      ctx.fillStyle = "rgba(255,255,255,0.25)";
+      const ry = y + 12 + Math.sin(t + c) * 2;
+      ctx.fillRect(x + 5, ry, 10, 2);
+      ctx.fillRect(x + 18, y + 22 + Math.cos(t + r) * 2, 8, 2);
+    }
+  }
+
+  function drawCrop(r, c) {
+    const crop = state.crops[r][c];
+    if (!crop) return;
+    const def = CROPS[crop.type];
+    const x = c * TILE, y = r * TILE;
+    const progress = Math.min(1, (performance.now() - crop.planted) / def.growMs);
+
+    if (!crop.grown) {
+      // sprout grows taller with progress
+      const h = 4 + progress * 16;
+      ctx.fillStyle = def.plantColor;
+      ctx.fillRect(x + TILE / 2 - 2, y + TILE - 6 - h, 4, h);
+      // little leaves
+      ctx.fillStyle = def.seedColor;
+      ctx.fillRect(x + TILE / 2 - 6, y + TILE - 8 - h * 0.6, 5, 3);
+      ctx.fillRect(x + TILE / 2 + 1, y + TILE - 12 - h * 0.6, 5, 3);
+    } else {
+      // full plant with a glowing flower + bobbing
+      const bob = Math.sin(performance.now() / 300 + (r + c)) * 2;
+      ctx.fillStyle = def.plantColor;
+      ctx.fillRect(x + TILE / 2 - 2, y + 10, 4, 16);
+      ctx.fillStyle = def.flower;
+      // flower blob
+      ctx.beginPath();
+      ctx.arc(x + TILE / 2, y + 9 + bob, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#fff4b8";
+      ctx.beginPath();
+      ctx.arc(x + TILE / 2, y + 9 + bob, 3, 0, Math.PI * 2);
+      ctx.fill();
+      // "ready" sparkle
+      if (Math.sin(performance.now() / 200 + r + c) > 0.6) {
+        ctx.fillStyle = "#fffbe0";
+        ctx.fillRect(x + TILE - 9, y + 3, 3, 3);
+      }
+    }
+  }
+
+  function drawCat() {
+    const x = Math.round(cat.x);
+    const y = Math.round(cat.y);
+    const step = cat.moving ? Math.floor(cat.animTime / 120) % 2 : 0;
+    const legY = step === 0 ? 0 : 1;
+
+    // shadow
+    ctx.fillStyle = "rgba(0,0,0,0.20)";
+    ctx.beginPath();
+    ctx.ellipse(x + 16, y + 30, 11, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const body = "#f4a64f";   // orange tabby
+    const dark = "#d97f2c";
+    const belly = "#ffe0b8";
+
+    // tail (animated)
+    ctx.fillStyle = body;
+    const tailWag = Math.sin(performance.now() / 250) * 4;
+    ctx.fillRect(x + 24, y + 16 + (cat.dir === "up" ? 0 : 2), 6, 4);
+    ctx.fillRect(x + 27, y + 12 + tailWag * 0.3, 4, 8);
+
+    // legs
+    ctx.fillStyle = dark;
+    ctx.fillRect(x + 9, y + 26 + legY, 4, 5);
+    ctx.fillRect(x + 19, y + 26 - legY, 4, 5);
+
+    // body
+    ctx.fillStyle = body;
+    ctx.fillRect(x + 8, y + 14, 16, 14);
+    // belly
+    ctx.fillStyle = belly;
+    ctx.fillRect(x + 12, y + 20, 8, 7);
+
+    // stripes
+    ctx.fillStyle = dark;
+    ctx.fillRect(x + 10, y + 16, 12, 2);
+    ctx.fillRect(x + 10, y + 22, 3, 2);
+    ctx.fillRect(x + 21, y + 22, 2, 2);
+
+    // head
+    ctx.fillStyle = body;
+    ctx.fillRect(x + 9, y + 4, 14, 12);
+    // ears
+    ctx.beginPath();
+    ctx.moveTo(x + 9, y + 6); ctx.lineTo(x + 9, y - 1); ctx.lineTo(x + 14, y + 5); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x + 23, y + 6); ctx.lineTo(x + 23, y - 1); ctx.lineTo(x + 18, y + 5); ctx.fill();
+    ctx.fillStyle = "#ffc0cb";
+    ctx.beginPath();
+    ctx.moveTo(x + 10, y + 4); ctx.lineTo(x + 10, y + 1); ctx.lineTo(x + 13, y + 4); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x + 22, y + 4); ctx.lineTo(x + 22, y + 1); ctx.lineTo(x + 19, y + 4); ctx.fill();
+
+    // face depends on direction
+    ctx.fillStyle = "#2c2018";
+    if (cat.dir === "down" || cat.dir === "left" || cat.dir === "right") {
+      let ex1 = x + 12, ex2 = x + 19;
+      if (cat.dir === "left") { ex1 = x + 11; ex2 = x + 16; }
+      if (cat.dir === "right") { ex1 = x + 15; ex2 = x + 20; }
+      ctx.fillRect(ex1, y + 8, 2, 3);
+      ctx.fillRect(ex2, y + 8, 2, 3);
+      // nose
+      ctx.fillStyle = "#ff9aa2";
+      ctx.fillRect(x + 15, y + 11, 2, 2);
+      // whiskers
+      ctx.strokeStyle = "rgba(255,255,255,0.7)";
+      ctx.beginPath();
+      ctx.moveTo(x + 8, y + 11); ctx.lineTo(x + 13, y + 12);
+      ctx.moveTo(x + 24, y + 11); ctx.lineTo(x + 19, y + 12);
+      ctx.stroke();
+    } else {
+      // facing up — back of head
+      ctx.fillStyle = dark;
+      ctx.fillRect(x + 11, y + 6, 10, 2);
+    }
+  }
+
+  function render() {
+    // ground base
+    ctx.fillStyle = "#6abe5e";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++)
+        drawTile(r, c);
+
+    // crops above tiles
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++)
+        drawCrop(r, c);
+
+    // highlight the tile the cat is standing on
+    const { r, c } = catCell();
+    if (inBounds(r, c)) {
+      ctx.strokeStyle = "rgba(255,255,255,0.85)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(c * TILE + 1, r * TILE + 1, TILE - 2, TILE - 2);
+      ctx.lineWidth = 1;
+    }
+
+    drawCat();
+  }
+
+  // ---------- HUD ----------
+  const goldEl = document.getElementById("gold");
+  const dayEl = document.getElementById("day");
+  const slotsEl = document.getElementById("seed-slots");
+
+  function buildSeedSlots() {
+    slotsEl.innerHTML = "";
+    CROP_KEYS.forEach((type) => {
+      const def = CROPS[type];
+      const div = document.createElement("div");
+      div.className = "chip seed-slot";
+      div.dataset.type = type;
+      div.innerHTML =
+        `<div>${def.emoji} ${def.name}</div>` +
+        `<div><span class="count">${state.seeds[type]}</span> seeds <span class="key">${def.key}</span></div>`;
+      slotsEl.appendChild(div);
+    });
+  }
+
+  function updateHUD() {
+    goldEl.textContent = state.gold;
+    dayEl.textContent = state.day;
+    CROP_KEYS.forEach((type) => {
+      const slot = slotsEl.querySelector(`[data-type="${type}"]`);
+      if (!slot) return;
+      slot.querySelector(".count").textContent = state.seeds[type];
+      slot.classList.toggle("active", state.selected === type);
+    });
+  }
+
+  // ---------- Messages ----------
+  const msgEl = document.getElementById("message");
+  let msgTimer = null;
+  function showMessage(text) {
+    msgEl.textContent = text;
+    msgEl.classList.add("show");
+    clearTimeout(msgTimer);
+    msgTimer = setTimeout(() => msgEl.classList.remove("show"), 1800);
+  }
+
+  // ---------- Main loop ----------
+  function loop(now) {
+    const dt = Math.min(50, now - lastTime);
+    lastTime = now;
+    update(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- Boot ----------
+  buildWorld();
+  buildSeedSlots();
+  updateHUD();
+  showMessage("Welcome to your farm! Press F to till the soil. 🐾");
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
