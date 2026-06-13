@@ -464,8 +464,9 @@
       }
     }
 
+    // Weeds: exactly 2 sprout every 62 seconds
     weedTimer += dt;
-    if (weedTimer >= 4500) { weedTimer = 0; spawnWeed(); }
+    if (weedTimer >= 62000) { weedTimer = 0; spawnWeed(); spawnWeed(); }
 
     // Day/night cycle: 60s per day
     state.dayTimer += dt;
