@@ -146,7 +146,7 @@
 
   const T = { GRASS: 0, SOIL: 1, WATER: 2, BED: 3, BIN: 4 };
   const STAGES = 3;
-  const DAY_MS = 60000;
+  const DAY_MS = 600000;   // one in-game day lasts 10 minutes (600s)
   const GATE_COLS = [8, 9, 10, 11];   // top-edge town entrance
 
   const CROPS = {
@@ -578,9 +578,9 @@
       crop.progress += dt;
       if (crop.progress >= stageMs) { crop.progress = 0; crop.stage++; if (crop.stage >= STAGES) crop.grown = true; }
     }
-    // weeds: exactly 2 every 62s
+    // weeds: exactly 1 every 5 minutes (300s)
     weedTimer += dt;
-    if (weedTimer >= 62000) { weedTimer = 0; spawnWeed(); spawnWeed(); }
+    if (weedTimer >= 300000) { weedTimer = 0; spawnWeed(); }
     // day/night
     state.dayTimer += dt;
     const ph = phaseFor(state.dayTimer / DAY_MS);
@@ -665,22 +665,88 @@
     ctx.moveTo(x + 22, y + 26); ctx.lineTo(x + 20, y + 14); ctx.stroke();
     ctx.fillStyle = "#7a3f3f"; ctx.fillRect(x + 11, y + 11, 3, 3); ctx.lineWidth = 1;
   }
+  // tiny shape helpers
+  function oval(cx, cy, rx, ry) { ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.fill(); }
+  function dot(cx, cy, r) { ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill(); }
+
+  // Catnip — leafy green stalk; matures with small purple flowers
+  function drawCatnip(x, y, phase) {
+    const cx = x + 16, base = y + TILE - 4, stem = "#5b9b3e", leaf = "#8fd06a", leaf2 = "#a3d977", flower = "#c98bff";
+    if (phase === 0) {
+      ctx.strokeStyle = stem; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx, base); ctx.lineTo(cx, base - 8); ctx.stroke();
+      ctx.fillStyle = leaf2; oval(cx - 4, base - 7, 3, 2); oval(cx + 4, base - 9, 3, 2);
+    } else if (phase === 1) {
+      ctx.strokeStyle = stem; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx, base); ctx.lineTo(cx, base - 15); ctx.stroke();
+      ctx.fillStyle = leaf; oval(cx - 5, base - 6, 4, 2); oval(cx + 5, base - 9, 4, 2); oval(cx - 5, base - 12, 3, 2);
+      ctx.fillStyle = leaf2; oval(cx + 4, base - 14, 3, 2);
+    } else {
+      const bob = Math.sin(performance.now() / 300 + x) * 1.5;
+      ctx.strokeStyle = stem; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx, base); ctx.lineTo(cx, base - 16); ctx.stroke();
+      ctx.fillStyle = leaf; oval(cx - 6, base - 7, 4, 2.5); oval(cx + 6, base - 9, 4, 2.5); oval(cx - 5, base - 13, 4, 2.5); oval(cx + 5, base - 15, 4, 2.5);
+      ctx.fillStyle = leaf2; oval(cx, base - 18, 5, 3);
+      ctx.fillStyle = flower; dot(cx - 3, base - 19 + bob, 2); dot(cx + 3, base - 20 + bob, 2); dot(cx, base - 23 + bob, 2);
+    }
+  }
+
+  // Fishberries — a little bush that hangs with orange fish-shaped berries
+  function fishBerry(cx, cy) {
+    ctx.fillStyle = "#ff8a3d"; ctx.beginPath(); ctx.ellipse(cx, cy, 3.6, 2.6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#ff6f1f"; ctx.beginPath(); ctx.moveTo(cx + 3, cy); ctx.lineTo(cx + 6, cy - 2.5); ctx.lineTo(cx + 6, cy + 2.5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#3a2a20"; ctx.fillRect(Math.round(cx - 2), Math.round(cy - 1), 1, 1);
+  }
+  function drawFishberry(x, y, phase) {
+    const cx = x + 16, base = y + TILE - 4, bush = "#6fae78", bush2 = "#86c98f";
+    if (phase === 0) {
+      ctx.strokeStyle = "#5b8fd6"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx, base); ctx.lineTo(cx, base - 7); ctx.stroke();
+      ctx.fillStyle = "#9fcf8f"; oval(cx - 3, base - 6, 3, 2.4); oval(cx + 3, base - 8, 3, 2.4);
+    } else if (phase === 1) {
+      ctx.fillStyle = bush; dot(cx, base - 8, 7);
+      ctx.fillStyle = bush2; dot(cx - 3, base - 9, 4);
+    } else {
+      ctx.fillStyle = bush; dot(cx, base - 9, 8);
+      ctx.fillStyle = bush2; dot(cx - 4, base - 10, 5);
+      fishBerry(cx - 6, base - 4); fishBerry(cx + 4, base - 3); fishBerry(cx - 1, base + 1);
+    }
+  }
+
+  // Mouse-melons — low-growing vine with striped oval green melons
+  function stripedMelon(cx, cy) {
+    ctx.fillStyle = "#4f9e3f"; ctx.beginPath(); ctx.ellipse(cx, cy, 5, 3.2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#2f6e28"; ctx.lineWidth = 1; ctx.beginPath();
+    ctx.moveTo(cx - 3, cy - 2); ctx.lineTo(cx - 3, cy + 2);
+    ctx.moveTo(cx, cy - 3); ctx.lineTo(cx, cy + 3);
+    ctx.moveTo(cx + 3, cy - 2); ctx.lineTo(cx + 3, cy + 2); ctx.stroke();
+  }
+  function drawMousemelon(x, y, phase) {
+    const cx = x + 16, base = y + TILE - 5, vine = "#5f9e4f", leaf = "#86d18f";
+    if (phase === 0) {
+      ctx.strokeStyle = vine; ctx.lineWidth = 2; ctx.beginPath();
+      ctx.moveTo(cx - 3, base + 3); ctx.quadraticCurveTo(cx, base - 4, cx + 4, base - 6); ctx.stroke();
+      ctx.fillStyle = leaf; oval(cx + 5, base - 6, 3, 2);
+    } else if (phase === 1) {
+      ctx.strokeStyle = vine; ctx.lineWidth = 2; ctx.beginPath();
+      ctx.moveTo(x + 4, base + 2); ctx.quadraticCurveTo(cx, base - 6, x + TILE - 4, base + 2); ctx.stroke();
+      ctx.fillStyle = leaf; oval(x + 8, base - 2, 4, 3); oval(x + TILE - 8, base - 1, 4, 3); oval(cx, base - 5, 4, 3);
+    } else {
+      ctx.strokeStyle = vine; ctx.lineWidth = 2; ctx.beginPath();
+      ctx.moveTo(x + 4, base + 2); ctx.quadraticCurveTo(cx, base - 7, x + TILE - 4, base + 2); ctx.stroke();
+      ctx.fillStyle = leaf; oval(x + 7, base - 3, 3, 2); oval(x + TILE - 7, base - 2, 3, 2);
+      stripedMelon(x + 9, base + 2); stripedMelon(x + TILE - 9, base + 3); stripedMelon(cx, base + 5);
+    }
+  }
+
   function drawCrop(r, c) {
     const crop = state.crops[r][c]; if (!crop) return;
     const def = CROPS[crop.type], x = c * TILE, y = r * TILE, stageMs = def.growMs / STAGES;
     const overall = Math.min(1, (crop.stage + crop.progress / stageMs) / STAGES);
+    const phase = crop.grown ? 2 : (overall < 0.5 ? 0 : 1);   // 0 sprout · 1 medium · 2 mature
+    if (crop.type === "catnip") drawCatnip(x, y, phase);
+    else if (crop.type === "fishberry") drawFishberry(x, y, phase);
+    else drawMousemelon(x, y, phase);
+    ctx.lineWidth = 1;
     if (!crop.grown) {
-      const h = 4 + overall * 18; ctx.fillStyle = def.plantColor;
-      ctx.fillRect(x + TILE / 2 - 2, y + TILE - 6 - h, 4, h);
-      ctx.fillRect(x + TILE / 2 - 6, y + TILE - 8 - h * 0.6, 5, 3);
-      ctx.fillRect(x + TILE / 2 + 1, y + TILE - 12 - h * 0.6, 5, 3);
-      if (state.wet[r][c]) { ctx.fillStyle = "#4aa3d6"; ctx.beginPath(); ctx.arc(x + TILE - 8, y + 7, 3, 0, Math.PI * 2); ctx.fill(); }
+      if (state.wet[r][c]) { ctx.fillStyle = "#4aa3d6"; ctx.beginPath(); ctx.arc(x + TILE - 7, y + 6, 3, 0, Math.PI * 2); ctx.fill(); }
       else { ctx.fillStyle = "#e6a23c"; ctx.fillRect(x + TILE - 9, y + 4, 2, 5); ctx.fillRect(x + TILE - 9, y + 11, 2, 2); }
-    } else {
-      const bob = Math.sin(performance.now() / 300 + (r + c)) * 2;
-      ctx.fillStyle = def.plantColor; ctx.fillRect(x + TILE / 2 - 2, y + 10, 4, 16);
-      ctx.fillStyle = def.flower; ctx.beginPath(); ctx.arc(x + TILE / 2, y + 9 + bob, 7, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#fff4b8"; ctx.beginPath(); ctx.arc(x + TILE / 2, y + 9 + bob, 3, 0, Math.PI * 2); ctx.fill();
     }
   }
   function drawTree(r, c) {
